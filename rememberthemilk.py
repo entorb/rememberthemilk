@@ -19,7 +19,7 @@ url_rtm_base = 'https://api.rememberthemilk.com/services/rest/'
 verbose = True  # enable for more logging
 
 #
-# helper methods 1: packages
+# helper functions 1: packages
 #
 
 
@@ -42,15 +42,16 @@ def perform_rest_call(url: str) -> str:
 
 
 #
-# helper methods 2: converters
+# helper functions 2: converters
 #
 
 def substr_between(s: str, s1: str, s2: str) -> str:
     """
-    returns substrion of s, found between strings s1 and s2
+    returns substring of s, found between strings s1 and s2
     """
     assert s1 in s, f'E: can\'t find \'{s1}\' in \'{s}\''
     assert s2 in s, f'E: can\'t find \'{s1}\' in \'{s}\''
+    # TODO: Is a regexp more performant? Check https://pythex.org
     i1 = s.find(s1)+len(s1)
     i2 = s.find(s2)
     assert i1 < i2, f'E: \'{s1}\' not before \'{s2}\' in \'{s}\''
@@ -59,17 +60,12 @@ def substr_between(s: str, s1: str, s2: str) -> str:
 
 def dict2url_param(d: dict) -> str:
     """
-    converts a dictionary of parameter: value pairs to an url conform list of key1=value1&...
+    converts a dictionary of parameter: value pairs to an url conform list of key1=value1&key2=value2...
     """
-    param_str = ''
-    for para in d.keys():  # sort keys via sorted(url_param.keys() not needed here, better leave untouched
-        param_str += f'{para}={d[para]}&'
-    if (len(param_str) > 0):  # remove trailing '&'
-        param_str = param_str[0:-1]
-    return param_str
+    return "&".join("=".join(tup) for tup in d.items())
 
 #
-# helper methods 3: rtm specific
+# helper functions 3: rtm specific
 #
 
 
@@ -78,9 +74,7 @@ def gen_api_sig(param: dict) -> str:
     generates the api_sig according to https://www.rememberthemilk.com/services/api/authentication.rtm
     yxz=foo feg=bar abc=baz -> abc=baz feg=bar yxz=foo -> abcbazfegbaryxzfoo -> MD5
     """
-    s = ''
-    for para in sorted(param.keys()):
-        s += para + param[para]
+    s = "".join("".join(tup) for tup in sorted(param.items()))
     api_sig = gen_MD5_string(shared_secret + s)
     return api_sig
 
@@ -126,7 +120,7 @@ def rtm_call_method(method: str, arguments: dict, token: str) -> str:
 
 
 #
-# rtm auth methods
+# rtm auth functions
 #
 
 def rtm_getFrob():
@@ -147,7 +141,7 @@ def rtm_getFrob():
 
 def rtm_gen_auth_url(frob: str) -> str:
     """
-    creates a url allowing a user to grant permission on his data to this app 
+    creates a url allowing a user to grant permission on his data to this app
     """
     # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987
     url_rtm_auth = 'https://www.rememberthemilk.com/services/auth/'
@@ -175,11 +169,11 @@ def rtm_auth_getToken(frob: str) -> str:
     return token
 
 #
-# rtm core methods
+# rtm core functions
 #
 
 
-def rtm_lists_getList(token: str):
+def rtm_lists_getList(token: str) -> str:
     method = 'rtm.lists.getList'
     arguments = {}
     reponse_text = rtm_call_method(method, arguments, token)
@@ -189,7 +183,7 @@ def rtm_lists_getList(token: str):
     return s
 
 
-def rtm_tasks_getList(token: str):
+def rtm_tasks_getList(token: str) -> str:
     method = 'rtm.tasks.getList'
     arguments = {}  # list_id, filter, last_sync = last modified
     arguments['list_id'] = '45663479'

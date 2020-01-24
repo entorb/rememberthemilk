@@ -6,3 +6,5 @@ register your Remember the Milk (rtm) API app here: https://www.rememberthemilk.
 * shared_secret
 
 place these into into rememberthemilk.ini (see example)
+
+Perl Script added that reads an addressbook.vcf , generates a list of upcoming birthdays and mail them to your rememberthemilk account

@@ -1,6 +1,8 @@
 # by TM: 
-# config files
 *.ini
+rememberthemilk.ini
+.vscode
+out.txt
 
 # github generated list:
 

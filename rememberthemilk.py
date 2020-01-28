@@ -1,6 +1,7 @@
 import requests
 import hashlib
 from configparser import ConfigParser
+import re
 
 # by Dr. Torben Menke https://entorb.net
 
@@ -16,7 +17,7 @@ shared_secret = config.get('settings', 'shared_secret')
 
 url_rtm_base = 'https://api.rememberthemilk.com/services/rest/'
 
-verbose = True  # enable for more logging
+verbose = False  # enable for more logging
 
 #
 # helper functions 1: packages
@@ -186,12 +187,24 @@ def rtm_lists_getList(token: str) -> str:
 def rtm_tasks_getList(token: str) -> str:
     method = 'rtm.tasks.getList'
     arguments = {}  # list_id, filter, last_sync = last modified
-    arguments['list_id'] = '45663479'
+    # arguments['list_id'] = '45663479' # filter by list ID
     arguments['filter'] = 'CompletedBefore:12/1/2020 completedAfter:31/12/2019'
     arguments['last_sync'] = '2019-12-31'  # filter on last modified date
     reponse_text = rtm_call_method(method, arguments, token)
-    s = substr_between(reponse_text, '<rsp stat="ok">', '</rsp>')
-    s = s.replace('><task', "/>\n<task")
+    s = reponse_text
+    # s = substr_between(reponse_text, '<rsp stat="ok">', '</rsp>')
+    s = re.sub('^.*<tasks [^>]+>(.*)</tasks>.*$', r'\1', s)
+
+    s = re.sub('<[\w]+/>', '', s)  # remove empty tags
+    s = re.sub(' [\w_]+=""', '', s)  # remove empty parameters
+
+    s = re.sub('<notes>.*?</notes>', '', s)  # remove notes
+    s = s.replace('has_due_time="0" ', '')  # remove has_due_time
+
+    # add linebreaks
+    s = s.replace('</list>', "\n</list>\n\n")
+    s = s.replace('<taskseries', "\n<taskseries")
+
     return s
 
 #
@@ -212,6 +225,6 @@ token = config.get('settings', 'token_entorb')
 
 # here the fun starts...
 
-print(rtm_lists_getList(token))
+# print(rtm_lists_getList(token))
 
 print(rtm_tasks_getList(token))

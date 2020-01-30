@@ -56,7 +56,7 @@ def substr_between(s: str, s1: str, s2: str) -> str:
     myMatches = myRegExp.search(s)
     assert myMatches != None, f'E: can\'t find \'{s1}\'...\'{s2}\' in \'{s}\''
     out = myMatches.group(1)
-    # Alternative:
+    # Alternative without assert
     # myPattern = '^.*' + s1 + '(.*)' + s2 + '.*$'
     # out = re.sub(myPattern, r'\1', s)
     return out
@@ -196,8 +196,8 @@ def rtm_tasks_getList(token: str) -> str:
     reponse_text = rtm_call_method(method, arguments, token)
     s = reponse_text
     s = substr_between(s, '<rsp stat="ok">', '</rsp>')
-    s = re.sub('^.*<tasks [^>]+>(.*)</tasks>.*$', r'\1', s)
-
+    s = substr_between(s, '<tasks [^>]+>', '</tasks>')
+    # s = re.sub('^.*<tasks [^>]+>(.*)</tasks>.*$', r'\1', s)
     s = re.sub('<[\w]+/>', '', s)  # remove empty tags
     s = re.sub(' [\w_]+=""', '', s)  # remove empty parameters
 
@@ -207,7 +207,6 @@ def rtm_tasks_getList(token: str) -> str:
     # add linebreaks
     s = s.replace('</list>', "\n</list>\n\n")
     s = s.replace('<taskseries', "\n<taskseries")
-
     return s
 
 #

@@ -49,14 +49,17 @@ def perform_rest_call(url: str) -> str:
 def substr_between(s: str, s1: str, s2: str) -> str:
     """
     returns substring of s, found between strings s1 and s2
+    s1 and s2 can be regular expressions
     """
-    assert s1 in s, f'E: can\'t find \'{s1}\' in \'{s}\''
-    assert s2 in s, f'E: can\'t find \'{s1}\' in \'{s}\''
-    # TODO: Is a regexp more performant? Check https://pythex.org
-    i1 = s.find(s1)+len(s1)
-    i2 = s.find(s2)
-    assert i1 < i2, f'E: \'{s1}\' not before \'{s2}\' in \'{s}\''
-    return s[i1:i2]
+    myPattern = s1 + '(.*)' + s2
+    myRegExp = re.compile(myPattern)
+    myMatches = myRegExp.search(s)
+    assert myMatches != None, f'E: can\'t find \'{s1}\'...\'{s2}\' in \'{s}\''
+    out = myMatches.group(1)
+    # Alternative:
+    # myPattern = '^.*' + s1 + '(.*)' + s2 + '.*$'
+    # out = re.sub(myPattern, r'\1', s)
+    return out
 
 
 def dict2url_param(d: dict) -> str:
@@ -192,7 +195,7 @@ def rtm_tasks_getList(token: str) -> str:
     arguments['last_sync'] = '2019-12-31'  # filter on last modified date
     reponse_text = rtm_call_method(method, arguments, token)
     s = reponse_text
-    # s = substr_between(reponse_text, '<rsp stat="ok">', '</rsp>')
+    s = substr_between(s, '<rsp stat="ok">', '</rsp>')
     s = re.sub('^.*<tasks [^>]+>(.*)</tasks>.*$', r'\1', s)
 
     s = re.sub('<[\w]+/>', '', s)  # remove empty tags

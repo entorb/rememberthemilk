@@ -1,3 +1,4 @@
+#!/bin/perl -w
 # reads a vcf addressbook file
 # skips all but whitelisted one-line files of that file
 # skips all cards not containing a birthday
@@ -12,10 +13,11 @@ use 5.010;
 use utf8;       # this script is written in UTF-8
 use autodie;    # Replace functions with ones that succeed or die with lexical scope
 # use Data::Dumper;
-# use Time::HiRes( 'time' );    # -> time() -> float of seconds
 
 # Modules: Perl Standard
 use Time::Local;
+
+# Encoding
 use Encode qw(encode decode);
 # use open ':encoding(UTF-8)';    # default encoding for all files, not working for open( my $fhIn, '<', $fileIn )
 # default encoding for print STDOUT
@@ -59,7 +61,7 @@ close $fhIn;
 # filter to only cards having bdays
 my @cards = split m/BEGIN:VCARD/, join( '', @cont );
 undef @cont;
-@cards = grep {m/\nBDAY:/} @cards;
+@cards = grep {m/\nBDAY[;:]/} @cards;
 
 if ( $export_bday_vcf != 0 and $#cards > 0 ) {
   # export addressbook of only birthdays
@@ -128,9 +130,9 @@ push @bdaycalender, $_;
 
 foreach my $card ( @cards ) {
   my @bday;
-  if ( $card =~ m/\nBDAY:(\d{4})(\d{2})(\d{2})\n/ ) {                                   # 19700102
+  if ( $card =~ m/\nBDAY[^:]*:(\d{4})(\d{2})(\d{2})\n/ ) {                                   # 19700102
     @bday = ( $1, $2, $3 );
-  } elsif ( $card =~ m/\nBDAY:(\d{4})\-(\d{2})\-(\d{2})/ ) {                            # 1970-01-02
+  } elsif ( $card =~ m/\nBDAY[^:]*:(\d{4})\-(\d{2})\-(\d{2})/ ) {                            # 1970-01-02
     @bday = ( $1, $2, $3 );
   } else {
     die "E: no bday in $card";
@@ -175,14 +177,34 @@ sub send_mail {
   $subject = encode( 'UTF-8', $subject );
   $body    = encode( 'UTF-8', $body );
   my $mailprog = '/usr/lib/sendmail';
-  open( my $fh, "| $mailprog -t" ) || print { *STDERR } "Mail-Error\n";
-  print { $fh } "To: $to_address\n";
-  print { $fh } "Subject: $subject\n";
-  print { $fh } "Content-Type: text/plain; charset=\"utf-8\"\n";
-  print { $fh } "\n$body";                                         # \n starts body
-  close $fh;
+  insertNewEMail($to_address, $subject, $body);
+  # open( my $fh, "| $mailprog -t" ) || print { *STDERR } "Mail-Error\n";
+  # print { $fh } "To: $to_address\n";
+  # print { $fh } "Subject: $subject\n";
+  # print { $fh } "Content-Type: text/plain; charset=\"utf-8\"\n";
+  # print { $fh } "\n$body";                                         # \n starts body
+  # close $fh;
   return;
 } ## end sub send_mail
+
+
+sub insertNewEMail {
+  my ( $send_to, $subject, $body, $send_from ) = @_;    # , $send_cc, $send_bcc
+
+  use lib ( '/var/www/virtual/entorb/perl5/lib/perl5' );
+  my $PATH = "/var/www/virtual/entorb/mail-daemon/outbox.db";
+  use DBI;
+  my $dbh = DBI->connect( "dbi:SQLite:dbname=$PATH", "", "" );
+  $dbh->{ AutoCommit } = 0;
+
+  my $sth = $dbh->prepare( "INSERT INTO outbox(send_to, subject, body, send_from, send_cc, send_bcc, date_created, date_sent) VALUES (?, ?, ?, ?, '', '', CURRENT_TIMESTAMP, NULL)" );
+  $sth->bind_param( 1, $send_to,   DBI::SQL_VARCHAR );
+  $sth->bind_param( 2, $subject,   DBI::SQL_VARCHAR );
+  $sth->bind_param( 3, $body,      DBI::SQL_VARCHAR );
+  $sth->bind_param( 4, $send_from, DBI::SQL_VARCHAR );
+  $sth->execute;
+  $dbh->commit;
+} ## end sub insertNewEMail
 
 my $subject = "BDay $email_taskTags =15min ~today ^1 week !3";
 my $body    = '';

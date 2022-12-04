@@ -1,7 +1,12 @@
-import requests
+#!/usr/bin/env python3
+"""
+Using RememberTheMilk API.
+"""
 import hashlib
-from configparser import ConfigParser
 import re
+from configparser import ConfigParser
+
+import requests
 
 # by Dr. Torben Menke https://entorb.net
 
@@ -11,11 +16,11 @@ import re
 
 
 config = ConfigParser()
-config.read('rememberthemilk.ini')
-api_key = config.get('settings', 'api_key')
-shared_secret = config.get('settings', 'shared_secret')
+config.read("rememberthemilk.ini")
+api_key = config.get("settings", "api_key")
+shared_secret = config.get("settings", "shared_secret")
 
-url_rtm_base = 'https://api.rememberthemilk.com/services/rest/'
+url_rtm_base = "https://api.rememberthemilk.com/services/rest/"
 
 verbose = False  # enable for more logging
 
@@ -25,18 +30,20 @@ verbose = False  # enable for more logging
 
 
 def gen_MD5_string(s: str) -> str:
-    m = hashlib.md5()
-    m.update(s.encode('ascii'))
+    m = hashlib.new("md5", usedforsecurity=False)
+    m.update(s.encode("ascii"))
     return m.hexdigest()
 
 
 def perform_rest_call(url: str) -> str:
-    if verbose == True:
+    if verbose is True:
         print("8<-----")
         print(url)
     resp = requests.get(url)
-    assert resp.status_code == 200, f'E: bad response. status code:{resp.status_code}, text:\n{resp.text}'
-    if verbose == True:
+    assert (
+        resp.status_code == 200
+    ), f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"
+    if verbose is True:
         print(resp.text)
         print("8<-----\n")
     return resp.text
@@ -46,15 +53,18 @@ def perform_rest_call(url: str) -> str:
 # helper functions 2: converters
 #
 
+
 def substr_between(s: str, s1: str, s2: str) -> str:
     """
-    returns substring of s, found between strings s1 and s2
+    Return substring of s.
+
+    found between strings s1 and s2
     s1 and s2 can be regular expressions
     """
-    myPattern = s1 + '(.*)' + s2
+    myPattern = s1 + "(.*)" + s2
     myRegExp = re.compile(myPattern)
     myMatches = myRegExp.search(s)
-    assert myMatches != None, f'E: can\'t find \'{s1}\'...\'{s2}\' in \'{s}\''
+    assert myMatches is not None, f"E: can't find '{s1}'...'{s2}' in '{s}'"
     out = myMatches.group(1)
     # Alternative without assert
     # myPattern = '^.*' + s1 + '(.*)' + s2 + '.*$'
@@ -64,9 +74,12 @@ def substr_between(s: str, s1: str, s2: str) -> str:
 
 def dict2url_param(d: dict) -> str:
     """
-    converts a dictionary of parameter: value pairs to an url conform list of key1=value1&key2=value2...
+    Convert a dictionary of parameter to string.
+
+    value pairs to an url conform list of key1=value1&key2=value2...
     """
     return "&".join("=".join(tup) for tup in d.items())
+
 
 #
 # helper functions 3: rtm specific
@@ -75,7 +88,9 @@ def dict2url_param(d: dict) -> str:
 
 def gen_api_sig(param: dict) -> str:
     """
-    generates the api_sig according to https://www.rememberthemilk.com/services/api/authentication.rtm
+    Generate the api_sig.
+
+    according to https://www.rememberthemilk.com/services/api/authentication.rtm
     yxz=foo feg=bar abc=baz -> abc=baz feg=bar yxz=foo -> abcbazfegbaryxzfoo -> MD5
     """
     s = "".join("".join(tup) for tup in sorted(param.items()))
@@ -85,39 +100,38 @@ def gen_api_sig(param: dict) -> str:
 
 def rtm_append_key_and_sig(d: dict) -> dict:
     """
-    adds api_key (knwon) and api_sig (generated) to dict d
+    Add api_key (known) and api_sig (generated) to dict d .
     """
-    d['api_key'] = api_key
-    d['api_sig'] = gen_api_sig(d)
+    d["api_key"] = api_key
+    d["api_sig"] = gen_api_sig(d)
     return d
 
 
 def rtm_append_key_and_token_and_sig(d: dict, token: str) -> dict:
     """
-    adds api_key (known) auth_token (parameter) and api_sig (generated) to dict d
+    Add api_key (known) auth_token (parameter) and api_sig (generated) to dict d.
     """
-    d['api_key'] = api_key
-    d['auth_token'] = token
-    d['api_sig'] = gen_api_sig(d)
+    d["api_key"] = api_key
+    d["auth_token"] = token
+    d["api_sig"] = gen_api_sig(d)
     return d
 
 
 def rtm_assert_rsp_status_ok(reponse_text: str):
     """
-    checks a rest response for <rsp stat="ok"> (status = ok)
+    Check a rest response for <rsp stat="ok"> (status = ok).
     """
-    assert '<rsp stat="ok">' in reponse_text, 'E: ' + print(reponse_text)
+    assert '<rsp stat="ok">' in reponse_text, "E: " + print(reponse_text)
 
 
 def rtm_call_method(method: str, arguments: dict, token: str) -> str:
     """
-    call any rtm API method
+    Call any rtm API method.
     """
-    param = {}
-    param['method'] = method
+    param = {"method": method}
     param.update(arguments)
     param_str = dict2url_param(rtm_append_key_and_token_and_sig(param, token))
-    url = f'{url_rtm_base}?{param_str}'
+    url = f"{url_rtm_base}?{param_str}"
     reponse_text = perform_rest_call(url)
     rtm_assert_rsp_status_ok(reponse_text)
     return reponse_text
@@ -127,50 +141,47 @@ def rtm_call_method(method: str, arguments: dict, token: str) -> str:
 # rtm auth functions
 #
 
+
 def rtm_getFrob():
     """
-    ask the API for a frob
+    Ask the API for a frob.
     """
     # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&api_key={api_key}&api_sig={api_sig}')
-    param = {}
-    param['method'] = 'rtm.auth.getFrob'
+    param = {"method": "rtm.auth.getFrob"}
     param_str = dict2url_param(rtm_append_key_and_sig(param))
-    url = f'{url_rtm_base}?{param_str}'
+    url = f"{url_rtm_base}?{param_str}"
     reponse_text = perform_rest_call(url)
     # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><frob>1a2f3</frob></rsp>
     rtm_assert_rsp_status_ok(reponse_text)
-    frob = substr_between(reponse_text, '<frob>', '</frob>')
+    frob = substr_between(reponse_text, "<frob>", "</frob>")
     return frob
 
 
 def rtm_gen_auth_url(frob: str) -> str:
     """
-    creates a url allowing a user to grant permission on his data to this app
+    Create a url allowing a user to grant permission on his data to this app.
     """
     # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987
-    url_rtm_auth = 'https://www.rememberthemilk.com/services/auth/'
-    param = {}
-    param['perms'] = 'read'
-    param['frob'] = frob
+    url_rtm_auth = "https://www.rememberthemilk.com/services/auth/"
+    param = {"perms": "read", "frob": frob}
     param_str = dict2url_param(rtm_append_key_and_sig(param))
-    url = f'{url_rtm_auth}?{param_str}'
+    url = f"{url_rtm_auth}?{param_str}"
     return url
 
 
 def rtm_auth_getToken(frob: str) -> str:
     """
-    fetch the user token
+    Fetch the user token.
     """
-    param = {}
-    param['method'] = 'rtm.auth.getToken'
-    param['frob'] = frob
+    param = {"method": "rtm.auth.getToken", "frob": frob}
     param_str = dict2url_param(rtm_append_key_and_sig(param))
-    url = f'{url_rtm_base}?{param_str}'
+    url = f"{url_rtm_base}?{param_str}"
     reponse_text = perform_rest_call(url)
     # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><auth><token>1234</token><perms>read</perms><user id="123" username="myname" fullname="My Full Name"/></auth></rsp>
     rtm_assert_rsp_status_ok(reponse_text)
-    token = substr_between(reponse_text, '<token>', '</token>')
+    token = substr_between(reponse_text, "<token>", "</token>")
     return token
+
 
 #
 # rtm core functions
@@ -178,36 +189,38 @@ def rtm_auth_getToken(frob: str) -> str:
 
 
 def rtm_lists_getList(token: str) -> str:
-    method = 'rtm.lists.getList'
+    method = "rtm.lists.getList"
     arguments = {}
     reponse_text = rtm_call_method(method, arguments, token)
-    s = substr_between(reponse_text, '<lists>', '</lists>')
-    s = s.replace('<list id', "\n<list id")
+    s = substr_between(reponse_text, "<lists>", "</lists>")
+    s = s.replace("<list id", "\n<list id")
     # <list id="45663479" name="PC" deleted="0" locked="0" archived="0" position="0" smart="0" sort_order="0"/>
     return s
 
 
 def rtm_tasks_getList(token: str) -> str:
-    method = 'rtm.tasks.getList'
-    arguments = {}  # list_id, filter, last_sync = last modified
+    method = "rtm.tasks.getList"
+    arguments = {
+        "filter": "CompletedBefore:12/1/2020 completedAfter:31/12/2019",
+        "last_sync": "2019-12-31",  # = last modified
+    }  # list_id, filter,
     # arguments['list_id'] = '45663479' # filter by list ID
-    arguments['filter'] = 'CompletedBefore:12/1/2020 completedAfter:31/12/2019'
-    arguments['last_sync'] = '2019-12-31'  # filter on last modified date
     reponse_text = rtm_call_method(method, arguments, token)
     s = reponse_text
-    s = substr_between(s, '<rsp stat="ok">', '</rsp>')
-    s = substr_between(s, '<tasks [^>]+>', '</tasks>')
+    s = substr_between(s, '<rsp stat="ok">', "</rsp>")
+    s = substr_between(s, "<tasks [^>]+>", "</tasks>")
     # s = re.sub('^.*<tasks [^>]+>(.*)</tasks>.*$', r'\1', s)
-    s = re.sub('<[\w]+/>', '', s)  # remove empty tags
-    s = re.sub(' [\w_]+=""', '', s)  # remove empty parameters
+    s = re.sub(r"<[\w]+/>", "", s)  # remove empty tags
+    s = re.sub(r' [\w_]+=""', "", s)  # remove empty parameters
 
-    s = re.sub('<notes>.*?</notes>', '', s)  # remove notes
-    s = s.replace('has_due_time="0" ', '')  # remove has_due_time
+    s = re.sub("<notes>.*?</notes>", "", s)  # remove notes
+    s = s.replace('has_due_time="0" ', "")  # remove has_due_time
 
     # add linebreaks
-    s = s.replace('</list>', "\n</list>\n\n")
-    s = s.replace('<taskseries', "\n<taskseries")
+    s = s.replace("</list>", "\n</list>\n\n")
+    s = s.replace("<taskseries", "\n<taskseries")
     return s
+
 
 #
 # perform the auth
@@ -223,7 +236,7 @@ def rtm_tasks_getList(token: str) -> str:
 
 
 # if a token is already available set it here
-token = config.get('settings', 'token_entorb')
+token = config.get("settings", "token_entorb")
 
 # here the fun starts...
 

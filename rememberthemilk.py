@@ -72,7 +72,7 @@ def substr_between(s: str, s1: str, s2: str) -> str:
     return out
 
 
-def dict2url_param(d: dict) -> str:
+def dict2url_param(d: dict[str, str]) -> str:
     """
     Convert a dictionary of parameter to string.
 
@@ -86,7 +86,7 @@ def dict2url_param(d: dict) -> str:
 #
 
 
-def gen_api_sig(param: dict) -> str:
+def gen_api_sig(param: dict[str, str]) -> str:
     """
     Generate the api_sig.
 
@@ -98,7 +98,7 @@ def gen_api_sig(param: dict) -> str:
     return api_sig
 
 
-def rtm_append_key_and_sig(d: dict) -> dict:
+def rtm_append_key_and_sig(d: dict[str, str]) -> dict[str, str]:
     """
     Add api_key (known) and api_sig (generated) to dict d .
     """
@@ -107,7 +107,7 @@ def rtm_append_key_and_sig(d: dict) -> dict:
     return d
 
 
-def rtm_append_key_and_token_and_sig(d: dict, token: str) -> dict:
+def rtm_append_key_and_token_and_sig(d: dict[str, str], token: str) -> dict[str, str]:
     """
     Add api_key (known) auth_token (parameter) and api_sig (generated) to dict d.
     """
@@ -117,14 +117,14 @@ def rtm_append_key_and_token_and_sig(d: dict, token: str) -> dict:
     return d
 
 
-def rtm_assert_rsp_status_ok(reponse_text: str):
+def rtm_assert_rsp_status_ok(response_text: str) -> None:
     """
     Check a rest response for <rsp stat="ok"> (status = ok).
     """
-    assert '<rsp stat="ok">' in reponse_text, "E: " + print(reponse_text)
+    assert '<rsp stat="ok">' in response_text, "E: " + response_text
 
 
-def rtm_call_method(method: str, arguments: dict, token: str) -> str:
+def rtm_call_method(method: str, arguments: dict[str, str], token: str) -> str:
     """
     Call any rtm API method.
     """
@@ -142,7 +142,7 @@ def rtm_call_method(method: str, arguments: dict, token: str) -> str:
 #
 
 
-def rtm_getFrob():
+def rtm_getFrob() -> str:
     """
     Ask the API for a frob.
     """

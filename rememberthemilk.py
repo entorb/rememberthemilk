@@ -19,10 +19,9 @@ config = ConfigParser()
 config.read("rememberthemilk.ini")
 api_key = config.get("settings", "api_key")
 shared_secret = config.get("settings", "shared_secret")
+token = config.get("settings", "token")
 
 url_rtm_base = "https://api.rememberthemilk.com/services/rest/"
-
-verbose = False  # enable for more logging
 
 #
 # helper functions 1: packages
@@ -36,16 +35,10 @@ def gen_MD5_string(s: str) -> str:
 
 
 def perform_rest_call(url: str) -> str:
-    if verbose is True:
-        print("8<-----")
-        print(url)
     resp = requests.get(url)
     assert (
         resp.status_code == 200
     ), f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"
-    if verbose is True:
-        print(resp.text)
-        print("8<-----\n")
     return resp.text
 
 
@@ -100,7 +93,7 @@ def gen_api_sig(param: dict[str, str]) -> str:
 
 def rtm_append_key_and_sig(d: dict[str, str]) -> dict[str, str]:
     """
-    Add api_key (known) and api_sig (generated) to dict d .
+    Add api_key (known) and api_sig (generated) to dict d.
     """
     d["api_key"] = api_key
     d["api_sig"] = gen_api_sig(d)
@@ -189,6 +182,7 @@ def rtm_auth_getToken(frob: str) -> str:
 
 
 def rtm_lists_getList(token: str) -> str:
+    """Fetch lists from RTM."""
     method = "rtm.lists.getList"
     arguments = {}
     reponse_text = rtm_call_method(method, arguments, token)
@@ -199,10 +193,11 @@ def rtm_lists_getList(token: str) -> str:
 
 
 def rtm_tasks_getList(token: str) -> str:
+    """Fetch filtered tasks from RTM."""
     method = "rtm.tasks.getList"
     arguments = {
-        "filter": "CompletedBefore:12/1/2020 completedAfter:31/12/2019",
-        "last_sync": "2019-12-31",  # = last modified
+        "filter": "CompletedBefore:12/1/2030 completedAfter:31/12/2021",
+        # "last_sync": "2019-12-31",  # = last modified
     }  # list_id, filter,
     # arguments['list_id'] = '45663479' # filter by list ID
     reponse_text = rtm_call_method(method, arguments, token)
@@ -235,11 +230,8 @@ def rtm_tasks_getList(token: str) -> str:
 # print(token)
 
 
-# if a token is already available set it here
-token = config.get("settings", "token_entorb")
-
-# here the fun starts...
-
-# print(rtm_lists_getList(token))
-
-print(rtm_tasks_getList(token))
+if __name__ == "__main__":
+    print("\nRTM Lists")
+    print(rtm_lists_getList(token))
+    print("\nRTM Tasks")
+    print(rtm_tasks_getList(token))

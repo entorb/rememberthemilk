@@ -71,7 +71,8 @@ repos:
     rev: v1.9.0
     hooks:
       - id: python-check-blanket-noqa
-      - id: python-check-blanket-type-ignore
+      # not, since '# type: ignore' is ok for me
+      # - id: python-check-blanket-type-ignore
       - id: python-check-mock-methods
       - id: python-no-eval
       - id: python-no-log-warn

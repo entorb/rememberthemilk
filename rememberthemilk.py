@@ -35,7 +35,7 @@ def gen_MD5_string(s: str) -> str:
 
 
 def perform_rest_call(url: str) -> str:
-    resp = requests.get(url)
+    resp = requests.get(url, timeout=3)
     assert (
         resp.status_code == 200
     ), f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"

@@ -139,7 +139,7 @@ def rtm_getFrob() -> str:
     """
     Ask the API for a frob.
     """
-    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&api_key={api_key}&api_sig={api_sig}')
+    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&api_key={api_key}&api_sig={api_sig}') # noqa: E501
     param = {"method": "rtm.auth.getFrob"}
     param_str = dict2url_param(rtm_append_key_and_sig(param))
     url = f"{url_rtm_base}?{param_str}"
@@ -154,7 +154,7 @@ def rtm_gen_auth_url(frob: str) -> str:
     """
     Create a url allowing a user to grant permission on his data to this app.
     """
-    # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987
+    # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987 # noqa: E501
     url_rtm_auth = "https://www.rememberthemilk.com/services/auth/"
     param = {"perms": "read", "frob": frob}
     param_str = dict2url_param(rtm_append_key_and_sig(param))
@@ -170,7 +170,7 @@ def rtm_auth_getToken(frob: str) -> str:
     param_str = dict2url_param(rtm_append_key_and_sig(param))
     url = f"{url_rtm_base}?{param_str}"
     reponse_text = perform_rest_call(url)
-    # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><auth><token>1234</token><perms>read</perms><user id="123" username="myname" fullname="My Full Name"/></auth></rsp>
+    # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><auth><token>1234</token><perms>read</perms><user id="123" username="myname" fullname="My Full Name"/></auth></rsp> # noqa: E501
     rtm_assert_rsp_status_ok(reponse_text)
     token = substr_between(reponse_text, "<token>", "</token>")
     return token
@@ -188,7 +188,8 @@ def rtm_lists_getList(token: str) -> str:
     reponse_text = rtm_call_method(method, arguments, token)
     s = substr_between(reponse_text, "<lists>", "</lists>")
     s = s.replace("<list id", "\n<list id")
-    # <list id="45663479" name="PC" deleted="0" locked="0" archived="0" position="0" smart="0" sort_order="0"/>
+    # <list id="45663479" name="PC" deleted="0" locked="0" archived="0" position="0" smart="0" sort_order="0"/> # noqa: E501
+
     return s
 
 

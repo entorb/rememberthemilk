@@ -1,0 +1,8 @@
+# CSpell Custom Dictionary Words
+abcbazfegbaryxzfoo
+frob
+Menke
+noqa
+rememberthemilk
+taskseries
+Torben

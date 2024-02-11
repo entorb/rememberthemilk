@@ -1,4 +1,4 @@
 [settings]
 api_key = a123
 shared_secret = b456
-token_entorb = c789
+token = c789

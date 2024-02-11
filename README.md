@@ -1,12 +1,20 @@
 # rememberthemilk
 
-access to <https://www.rememberthemilk.com> tasks via their API, written in Python 3
+access to <https://www.rememberthemilk.com> tasks via their API
 
-register your Remember the Milk (rtm) API app here: <https://www.rememberthemilk.com/services/api/> to obtain an
+## Register your API app
+
+register your Remember the Milk app here: <https://www.rememberthemilk.com/services/api/> and  obtain
 
 * api_key
 * shared_secret
 
-place these into into rememberthemilk.ini (see example)
+store these info in [rememberthemilk.ini](rememberthemilk.ini) (see [rememberthemilk.ini.example](rememberthemilk.ini.example))
 
-than adjust and run [rememberthemilk.py](rememberthemilk.py)
+## Obtain API token
+
+run [1auth.py](1auth.py) once and add the resulting token to [rememberthemilk.ini](rememberthemilk.ini)
+
+## Play with the API
+
+see [2run.py](2run.py) as example

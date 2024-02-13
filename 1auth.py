@@ -7,7 +7,7 @@ Only needed once.
 from helper import (
     URL_RTM_BASE,
     dict_to_url_param,
-    json_parse,
+    json_parse_response,
     perform_rest_call,
     rtm_append_key_and_sig,
 )
@@ -22,7 +22,7 @@ def rtm_get_frob() -> str:
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    d_json = json_parse(response_text)
+    d_json = json_parse_response(response_text)
     return d_json["frob"]
 
 
@@ -46,7 +46,7 @@ def rtm_auth_get_token(frob: str) -> str:
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    d_json = json_parse(response_text)
+    d_json = json_parse_response(response_text)
     return d_json["auth"]["token"]
 
 

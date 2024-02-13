@@ -4,4 +4,5 @@ cache/
 
 *.ini
 rememberthemilk.ini
-out.txt
+out.*
+*out.xlsx

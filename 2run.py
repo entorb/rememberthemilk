@@ -8,6 +8,9 @@ Playing with RememberTheMilk's API.
 # list of available API methods can be fount at https://www.rememberthemilk.com/services/api/methods.rtm
 
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import pandas as pd
 
 from helper import (
     check_cache_file_available_and_recent,
@@ -15,6 +18,9 @@ from helper import (
     json_write,
     rtm_call_method,
 )
+
+TZ = "Europe/Berlin"
+ZONE = ZoneInfo(TZ)
 
 
 def get_lists() -> list[dict[str, str]]:
@@ -79,15 +85,54 @@ def flatten_tasks(
                 d = {
                     "list": d_list_id_to_name[tasks_per_list["id"]],  # type: ignore
                     "name": taskseries["name"],  # type: ignore
-                    "completed": task["completed"],  # type: ignore
-                    "deleted": task["deleted"],  # type: ignore
                     "due": task["due"],  # type: ignore
+                    "completed": task["completed"],  # type: ignore
+                    "priority": task["priority"],  # type: ignore
                     "estimate": task["estimate"],  # type: ignore
                     "postponed": task["postponed"],  # type: ignore
-                    "priority": task["priority"],  # type: ignore
+                    "deleted": task["deleted"],  # type: ignore
                 }
                 list_flat.append(d)
+
     return list_flat
+
+
+def fix_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str | int]]:
+    """
+    Convert some fields to int or date."""
+    list_flat2: list[dict[str, str | int]] = []
+    for task in list_flat:
+        task["estimate"] = task["estimate"].replace("PT", "")
+        if task["estimate"].endswith("M"):
+            task["estimate"] = task["estimate"].replace("M", "")
+            task["estimate"] = int(task["estimate"])  # type: ignore
+        elif task["estimate"].endswith("H"):
+            task["estimate"] = task["estimate"].replace("H", "")
+            task["estimate"] = int(task["estimate"]) * 60  # type: ignore
+
+        task["priority"] = int(task["priority"].replace("N", "0"))  # type: ignore
+
+        task["postponed"] = int(task["postponed"])  # type: ignore
+
+        list_flat2.append(task)  # type: ignore
+    return list_flat2
+
+
+def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:
+    """Convert tasks from list of dicts to Pandas DataFrame."""
+    df = pd.DataFrame.from_records(list_flat2)
+
+    for col in ("due", "completed"):
+        df[col] = (
+            pd.to_datetime(df[col], format="%Y-%m-%dT%H:%M:%S%z")
+            .dt.tz_convert(tz=TZ)
+            .dt.tz_localize(None)
+            .dt.date
+        )
+
+    # df["overdue"] = df["completed"] - df["due"]
+
+    return df
 
 
 if __name__ == "__main__":
@@ -97,17 +142,29 @@ if __name__ == "__main__":
     for my_tasks_per_list in rtm_lists:
         # {'id': '25825681', 'name': 'Name of my List', 'deleted': '0', 'locked': '0', 'archived': '0', 'position': '0', 'smart': '0', 'sort_order': '0'}  # noqa: E501
         d_list_id_to_name[my_tasks_per_list["id"]] = my_tasks_per_list["name"]
-    for my_tasks_per_list in rtm_lists:
-        print(
-            my_tasks_per_list["id"],
-            my_tasks_per_list["smart"],
-            my_tasks_per_list["name"],
-        )
+    # for my_tasks_per_list in rtm_lists:
+    #     print(
+    #         my_tasks_per_list["id"],
+    #         my_tasks_per_list["smart"],
+    #         my_tasks_per_list["name"],
+    #     )
 
     print("\nRTM tasks completed this year")
     rtm_tasks = get_tasks(
-        my_filter="CompletedAfter:10/02/2024 CompletedBefore:01/01/2999"
+        my_filter="CompletedAfter:10/02/2023 CompletedBefore:01/01/2999"  #
     )
     rtm_tasks_flat = flatten_tasks(rtm_tasks, d_list_id_to_name)
-    for task in rtm_tasks_flat:
-        print(task)
+    rtm_tasks_flat = fix_task_fields(rtm_tasks_flat)
+
+    # for task in rtm_tasks_flat:
+    #     print(task)
+
+    df = tasks_to_df(rtm_tasks_flat)
+
+    print(df)
+    df.to_csv(
+        "out.tsv",
+        sep="\t",
+        lineterminator="\n",
+    )
+    df.to_excel("out.xlsx", index=False)

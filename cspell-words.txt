@@ -4,5 +4,7 @@ frob
 Menke
 noqa
 rememberthemilk
+rrule
 taskseries
 Torben
+WKST

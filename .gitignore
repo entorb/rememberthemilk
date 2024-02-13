@@ -1,5 +1,6 @@
 .vscode/
 __pycache__/
+cache/
 
 *.ini
 rememberthemilk.ini

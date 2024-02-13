@@ -2,6 +2,7 @@ fix = true               # auto-fix findings
 line-length = 88         # same as Black
 target-version = "py310" # Python 3.10
 
+[lint]
 # comment this out to use only default rules (["E4", "E7", "E9", "F"])
 select = ["ALL"] # activate all rules
 
@@ -25,7 +26,6 @@ extend-ignore = [
     "TD003",  # missing-todo-link
 ]
 
-[lint]
 
 [format]
 line-ending = "lf" # force lf

@@ -7,10 +7,9 @@ Only needed once.
 from helper import (
     URL_RTM_BASE,
     dict_to_url_param,
+    json_parse,
     perform_rest_call,
     rtm_append_key_and_sig,
-    rtm_assert_rsp_status_ok,
-    substr_between,
 )
 
 
@@ -18,15 +17,13 @@ def rtm_get_frob() -> str:
     """
     Ask the API for a frob.
     """
-    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&api_key={api_key}&api_sig={api_sig}') # noqa: E501
-    param = {"method": "rtm.auth.getFrob"}
+    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&format=json&api_key={api_key}&api_sig={api_sig}') # noqa: E501
+    param = {"method": "rtm.auth.getFrob", "format": "json"}
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><frob>1a2f3</frob></rsp>
-    rtm_assert_rsp_status_ok(response_text)
-    frob = substr_between(response_text, "<frob>", "</frob>")
-    return frob
+    d_json = json_parse(response_text)
+    return d_json["frob"]
 
 
 def rtm_gen_auth_url(frob: str) -> str:
@@ -45,14 +42,12 @@ def rtm_auth_get_token(frob: str) -> str:
     """
     Fetch the user token.
     """
-    param = {"method": "rtm.auth.getToken", "frob": frob}
+    param = {"method": "rtm.auth.getToken", "format": "json", "frob": frob}
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    # <?xml version='1.0' encoding='UTF-8'?><rsp stat="ok"><auth><token>1234</token><perms>read</perms><user id="123" username="username" fullname="My Full Name"/></auth></rsp> # noqa: E501
-    rtm_assert_rsp_status_ok(response_text)
-    token = substr_between(response_text, "<token>", "</token>")
-    return token
+    d_json = json_parse(response_text)
+    return d_json["auth"]["token"]
 
 
 def auth() -> None:

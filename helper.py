@@ -1,7 +1,7 @@
 """Helper functions."""
 
 import hashlib
-import re
+import json
 from configparser import ConfigParser
 
 import requests
@@ -28,32 +28,37 @@ def dict_to_url_param(d: dict[str, str]) -> str:
     return "&".join("=".join(tup) for tup in d.items())
 
 
-def perform_rest_call(url: str) -> str:
+def json_parse(response_text: str) -> dict[str, str]:
     """
-    Perform a simple REST call to an url.
+    Convert response_text as JSON.
 
-    Return the response text.
+    Ensures that the response status is ok and drops that
     """
-    resp = requests.get(url, timeout=3)
-    if resp.status_code != 200:  # noqa: PLR2004
-        msg = f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"
+    try:
+        d_json = json.loads(response_text)
+    except json.JSONDecodeError:
+        msg = f"E: invalid JSON:\n{response_text}"
+        raise Exception(msg)  # noqa: B904, TRY002
+    if d_json["rsp"]["stat"] != "ok":
+        msg = f"E: status not ok:\n{d_json}"
         raise Exception(msg)  # noqa: TRY002
-    return resp.text
+    del d_json["rsp"]["stat"]
+    return d_json["rsp"]
 
 
-def substr_between(s: str, s1: str, s2: str) -> str:
-    """
-    Return substring of s between strings s1 and s2.
+# def substr_between(s: str, s1: str, s2: str) -> str:
+#     """
+#     Return substring of s between strings s1 and s2.
 
-    s1 and s2 can be regular expressions
-    """
-    my_re = re.compile(s1 + "(.*)" + s2, flags=re.DOTALL)
-    my_matches = my_re.search(s)
-    if my_matches is None:
-        msg = f"E: can't find '{s1}'...'{s2}' in '{s}'"
-        raise Exception(msg)  # noqa: TRY002
-    out = my_matches.group(1)
-    return out
+#     s1 and s2 can be regular expressions
+#     """
+#     my_re = re.compile(s1 + "(.*)" + s2, flags=re.DOTALL)
+#     my_matches = my_re.search(s)
+#     if my_matches is None:
+#         msg = f"E: can't find '{s1}'...'{s2}' in '{s}'"
+#         raise Exception(msg)
+#     out = my_matches.group(1)
+#     return out
 
 
 def gen_md5_string(s: str) -> str:
@@ -63,6 +68,20 @@ def gen_md5_string(s: str) -> str:
     m = hashlib.new("md5", usedforsecurity=False)
     m.update(s.encode("ascii"))
     return m.hexdigest()
+
+
+def perform_rest_call(url: str) -> str:
+    """
+    Perform a simple REST call to an url.
+
+    Assert status = 200
+    Return the response text.
+    """
+    resp = requests.get(url, timeout=3)
+    if resp.status_code != 200:  # noqa: PLR2004
+        msg = f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"
+        raise Exception(msg)  # noqa: TRY002
+    return resp.text
 
 
 #
@@ -77,7 +96,7 @@ def gen_api_sig(param: dict[str, str]) -> str:
     according to https://www.rememberthemilk.com/services/api/authentication.rtm
     yxz=foo feg=bar abc=baz
       -> (1. sorting) abc=baz feg=bar yxz=foo
-      -> (2.joining) abcbazfegbaryxzfoo -> MD5
+      -> (2. joining) abcbazfegbaryxzfoo -> MD5
     """
     s = "".join("".join(tup) for tup in sorted(param.items()))
     api_sig = gen_md5_string(SHARED_SECRET + s)
@@ -103,27 +122,17 @@ def rtm_append_key_and_token_and_sig(d: dict[str, str]) -> dict[str, str]:
     return d
 
 
-def rtm_assert_rsp_status_ok(response_text: str) -> None:
-    """
-    Check that the rest response is ok.
-
-    Must contain <rsp stat="ok">
-    """
-    if '<rsp stat="ok">' not in response_text:
-        msg = f"E: {response_text}"
-        raise Exception(msg)  # noqa: TRY002
-
-
-def rtm_call_method(method: str, arguments: dict[str, str]) -> str:
+def rtm_call_method(method: str, arguments: dict[str, str]) -> dict[str, str]:
     """
     Call any rtm API method.
 
+    request in json format
     asserts that the response is ok
     """
-    param = {"method": method}
+    param = {"method": method, "format": "json"}
     param.update(arguments)
     param_str = dict_to_url_param(rtm_append_key_and_token_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    rtm_assert_rsp_status_ok(response_text)
-    return response_text
+    d_json = json_parse(response_text)
+    return d_json

@@ -7,10 +7,28 @@ Playing with RememberTheMilk's API.
 # API authentication documentation can be found at https://www.rememberthemilk.com/services/api/authentication.rtm
 # list of available API methods can be fount at https://www.rememberthemilk.com/services/api/methods.rtm
 
-from helper import rtm_call_method
+from pathlib import Path
+
+from helper import (
+    check_cache_file_available_and_recent,
+    json_read,
+    json_write,
+    rtm_call_method,
+)
 
 
-def rtm_get_lists() -> list[dict[str, str]]:
+def get_lists() -> list[dict[str, str]]:
+    """Fetch lists from RTM or cache if recent."""
+    cache_file = Path("cache/lists.json")
+    if check_cache_file_available_and_recent(file_path=cache_file, max_age=3600):
+        lists = json_read(cache_file)
+    else:
+        lists = get_rmt_lists()
+        json_write(cache_file, lists)
+    return lists
+
+
+def get_rmt_lists() -> list[dict[str, str]]:
     """Fetch lists from RTM."""
     json_data = rtm_call_method(method="rtm.lists.getList", arguments={})
 
@@ -18,6 +36,17 @@ def rtm_get_lists() -> list[dict[str, str]]:
     lists = sorted(lists, key=lambda x: (x["smart"], x["name"]), reverse=False)  # type: ignore
 
     return lists  # type: ignore
+
+
+def get_tasks(my_filter: str) -> list[dict[str, str]]:
+    """Fetch filtered tasks from RTM or cache if recent."""
+    cache_file = Path("cache/tasks.json")
+    if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 60):
+        tasks = json_read(cache_file)
+    else:
+        tasks = get_rtm_tasks(my_filter)
+        json_write(cache_file, tasks)
+    return tasks
 
 
 def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:
@@ -63,7 +92,7 @@ def flatten_tasks(
 
 if __name__ == "__main__":
     print("\nRTM Lists")
-    rtm_lists = rtm_get_lists()
+    rtm_lists = get_lists()
     d_list_id_to_name = {}
     for my_tasks_per_list in rtm_lists:
         # {'id': '25825681', 'name': 'Name of my List', 'deleted': '0', 'locked': '0', 'archived': '0', 'position': '0', 'smart': '0', 'sort_order': '0'}  # noqa: E501
@@ -76,7 +105,7 @@ if __name__ == "__main__":
         )
 
     print("\nRTM tasks completed this year")
-    rtm_tasks = get_rtm_tasks(
+    rtm_tasks = get_tasks(
         my_filter="CompletedAfter:10/02/2024 CompletedBefore:01/01/2999"
     )
     rtm_tasks_flat = flatten_tasks(rtm_tasks, d_list_id_to_name)

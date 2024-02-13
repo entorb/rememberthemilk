@@ -2,9 +2,13 @@
 
 import hashlib
 import json
+import time
 from configparser import ConfigParser
+from pathlib import Path
 
 import requests
+
+Path("cache").mkdir(exist_ok=True)
 
 config = ConfigParser()
 config.read("rememberthemilk.ini")
@@ -28,7 +32,7 @@ def dict_to_url_param(d: dict[str, str]) -> str:
     return "&".join("=".join(tup) for tup in d.items())
 
 
-def json_parse(response_text: str) -> dict[str, str]:
+def json_parse_response(response_text: str) -> dict[str, str]:
     """
     Convert response_text as JSON.
 
@@ -44,6 +48,23 @@ def json_parse(response_text: str) -> dict[str, str]:
         raise Exception(msg)  # noqa: TRY002
     del d_json["rsp"]["stat"]
     return d_json["rsp"]
+
+
+def json_read(file_path: Path) -> list[dict[str, str]]:
+    """
+    Read JSON data from file.
+    """
+    with file_path.open(encoding="utf-8") as fh:
+        json_data = json.load(fh)
+    return json_data
+
+
+def json_write(file_path: Path, json_data: list[dict[str, str]]) -> None:
+    """
+    Write JSON data to file.
+    """
+    with file_path.open("w", encoding="utf-8", newline="\n") as fh:
+        json.dump(json_data, fh, ensure_ascii=False, sort_keys=False, indent=2)
 
 
 # def substr_between(s: str, s1: str, s2: str) -> str:
@@ -68,6 +89,17 @@ def gen_md5_string(s: str) -> str:
     m = hashlib.new("md5", usedforsecurity=False)
     m.update(s.encode("ascii"))
     return m.hexdigest()
+
+
+def check_cache_file_available_and_recent(
+    file_path: Path,
+    max_age: int = 3500,
+) -> bool:
+    """Check if cache file exists and is recent."""
+    cache_good = False
+    if file_path.exists() and (time.time() - file_path.stat().st_mtime < max_age):
+        cache_good = True
+    return cache_good
 
 
 def perform_rest_call(url: str) -> str:
@@ -134,5 +166,5 @@ def rtm_call_method(method: str, arguments: dict[str, str]) -> dict[str, str]:
     param_str = dict_to_url_param(rtm_append_key_and_token_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
-    d_json = json_parse(response_text)
+    d_json = json_parse_response(response_text)
     return d_json

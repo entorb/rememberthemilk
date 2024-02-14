@@ -2,3 +2,4 @@
 api_key = a123
 shared_secret = b456
 token = c789
+timezone = Europe/Berlin

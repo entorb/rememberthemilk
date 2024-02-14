@@ -102,7 +102,7 @@ def flatten_tasks(
                     "name": taskseries["name"],  # type: ignore
                     "due": task["due"],  # type: ignore
                     "completed": task["completed"],  # type: ignore
-                    "priority": task["priority"],  # type: ignore
+                    "prio": task["priority"],  # type: ignore
                     "estimate": task["estimate"],  # type: ignore
                     "postponed": task["postponed"],  # type: ignore
                     "deleted": task["deleted"],  # type: ignore
@@ -128,18 +128,22 @@ def convert_task_fields(  # noqa: C901, PLR0912
         elif task["estimate"].endswith("H"):
             task["estimate"] = task["estimate"].replace("H", "")
             task["estimate"] = int(task["estimate"]) * 60  # type: ignore
+        elif len(task["estimate"]) == 0:
+            task["estimate"] = None  # type: ignore
+        else:
+            raise Exception("E: unknown estimate:" + task["estimate"])  # noqa: TRY002
 
         # priority
         # N->1, 3->1, 2->2, 1 -> 4
         # no prio -> prio 1
-        if task["priority"] == "N" or task["priority"] == "3":
-            task["priority"] = 1  # type: ignore
-        elif task["priority"] == "2":
-            task["priority"] = 2  # type: ignore
-        elif task["priority"] == "1":
-            task["priority"] = 4  # type: ignore
+        if task["prio"] == "N" or task["prio"] == "3":
+            task["prio"] = 1  # type: ignore
+        elif task["prio"] == "2":
+            task["prio"] = 2  # type: ignore
+        elif task["prio"] == "1":
+            task["prio"] = 4  # type: ignore
         else:
-            raise Exception("E: unknown priority:" + task["priority"])  # noqa: TRY002
+            raise Exception("E: unknown priority:" + task["prio"])  # noqa: TRY002
 
         task["postponed"] = int(task["postponed"])  # type: ignore
 
@@ -163,9 +167,9 @@ def convert_task_fields(  # noqa: C901, PLR0912
 
         # overdue prio
         if task["overdue"]:
-            task["overdue_priority"] = task["priority"] * task["overdue"]  # type: ignore
+            task["overdue_prio"] = task["prio"] * task["overdue"]  # type: ignore
         else:
-            task["overdue_priority"] = None  # type: ignore
+            task["overdue_prio"] = None  # type: ignore
 
         # add completed week
         if task["completed"]:
@@ -190,6 +194,8 @@ def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:
     """Convert tasks from list of dicts to Pandas DataFrame."""
     df = pd.DataFrame.from_records(list_flat2)
     df["overdue"] = df["overdue"].astype("Int64")
+    df["overdue_prio"] = df["overdue_prio"].astype("Int64")
+    df["estimate"] = df["estimate"].astype("Int64")
 
     return df
 
@@ -221,31 +227,32 @@ if __name__ == "__main__":
 
     df = df.groupby(["completed_week"]).agg(
         count=("completed_week", "count"),
-        sum_prio=("priority", "sum"),
-        sum_overdue_prio=("overdue_priority", "sum"),
+        sum_prio=("prio", "sum"),
+        sum_overdue_prio=("overdue_prio", "sum"),
+        sum_estimate=("estimate", "sum"),
     )
     print(df)
 
     print("\nRTM tasks overdue")
     my_filter = """
 dueBefore:Today
-AND NOT completedAfter:01/01/2000
+AND NOT status:completed
 AND NOT list:Taschengeld
 """
     df = get_tasks_as_df(
         my_filter=my_filter,
         d_list_id_to_name=d_list_id_to_name,
     )
-    df = df.sort_values(by=["overdue_priority"], ascending=False)
+    df = df.sort_values(by=["overdue_prio"], ascending=False)
     df = df.reset_index()
 
-    print(df[["name", "due", "overdue", "priority", "overdue_priority"]])
+    print(df[["name", "due", "overdue", "prio", "overdue_prio"]])
     # html encoding of column name only
     df["name"] = df["name"].str.encode("ascii", "xmlcharrefreplace").str.decode("utf-8")
     # add link to name
     df["name"] = "<a href='" + df["url"] + "' target='_blank'>" + df["name"] + "</a>"
     # export to html
-    df = df[["name", "due", "overdue", "priority", "overdue_priority", "estimate"]]
+    df = df[["name", "due", "overdue", "prio", "overdue_prio", "estimate"]]
     df.to_html(
         "out-overdue.html",
         index=False,

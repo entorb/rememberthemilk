@@ -1,8 +1,10 @@
 # CSpell Custom Dictionary Words
 abcbazfegbaryxzfoo
+astype
 frob
 Menke
 noqa
+prio
 rememberthemilk
 rrule
 taskseries

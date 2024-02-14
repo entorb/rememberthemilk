@@ -29,8 +29,22 @@ if __name__ == "__main__":
     df = df.reset_index()
 
     df = df_name_url_to_html(df)
-    df = df.drop(columns=["list_id", "task_id", "url"])
-    df_to_html(df, "out-completed.html")
+    df_to_html(
+        df[
+            [
+                "name",
+                "completed",
+                # "completed_week",
+                # "due",
+                "overdue",
+                "prio",
+                "overdue_prio",
+                "postponed",
+                "estimate",
+            ]
+        ],
+        "out-completed.html",
+    )
     # df.to_excel("out-done-year.xlsx", index=False)
 
     df = df.groupby(["completed_week"]).agg(

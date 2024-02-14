@@ -5,5 +5,5 @@ cache/
 *.ini
 rememberthemilk.ini
 out.*
+out-*
 *out.xlsx
-out*.html

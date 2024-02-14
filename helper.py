@@ -9,6 +9,11 @@ from pathlib import Path
 import requests
 
 Path("cache").mkdir(exist_ok=True)
+# delete cache files older 1h
+for file_path in Path("cache/").glob("*.json"):
+    if time.time() - file_path.stat().st_mtime > 3600:  # noqa: PLR2004
+        file_path.unlink()
+
 
 config = ConfigParser()
 config.read("rememberthemilk.ini")

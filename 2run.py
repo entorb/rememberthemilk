@@ -15,6 +15,7 @@ import pandas as pd
 
 from helper import (
     check_cache_file_available_and_recent,
+    gen_md5_string,
     json_read,
     json_write,
     rtm_call_method,
@@ -47,8 +48,10 @@ def get_rmt_lists() -> list[dict[str, str]]:
 
 def get_tasks(my_filter: str) -> list[dict[str, str]]:
     """Fetch filtered tasks from RTM or cache if recent."""
-    cache_file = Path("cache/tasks.json")
+    h = gen_md5_string(my_filter)
+    cache_file = Path(f"cache/tasks-{h}.json")
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 60):
+        print(f"Using cache file: {cache_file}")
         tasks = json_read(cache_file)
     else:
         tasks = get_rtm_tasks(my_filter)

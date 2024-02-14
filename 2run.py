@@ -7,6 +7,7 @@ Playing with RememberTheMilk's API.
 # API authentication documentation can be found at https://www.rememberthemilk.com/services/api/authentication.rtm
 # list of available API methods can be fount at https://www.rememberthemilk.com/services/api/methods.rtm
 
+import datetime as dt
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -83,6 +84,8 @@ def flatten_tasks(
             for task in taskseries["task"]:  # type: ignore
                 # {'id': '1008061846', 'due': '2024-01-02T23:00:00Z', 'has_due_time': '0', 'added': '2023-12-03T20:04:47Z', 'completed': '2024-02-12T14:19:36Z', 'deleted': '', 'priority': '3', 'postponed': '0', 'estimate': 'PT15M'}  # noqa: E501
                 d = {
+                    "list_id": tasks_per_list["id"],  # type: ignore
+                    "task_id": task["id"],  # type: ignore
                     "list": d_list_id_to_name[tasks_per_list["id"]],  # type: ignore
                     "name": taskseries["name"],  # type: ignore
                     "due": task["due"],  # type: ignore
@@ -97,11 +100,12 @@ def flatten_tasks(
     return list_flat
 
 
-def fix_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str | int]]:
+def convert_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str | int]]:
     """
     Convert some fields to int or date."""
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
+        # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
         task["estimate"] = task["estimate"].replace("PT", "")
         if task["estimate"].endswith("M"):
             task["estimate"] = task["estimate"].replace("M", "")
@@ -110,33 +114,56 @@ def fix_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str | int
             task["estimate"] = task["estimate"].replace("H", "")
             task["estimate"] = int(task["estimate"]) * 60  # type: ignore
 
-        task["priority"] = int(task["priority"].replace("N", "0"))  # type: ignore
+        # no prio -> prio 1
+        task["priority"] = int(task["priority"].replace("N", "1"))  # type: ignore
 
         task["postponed"] = int(task["postponed"])  # type: ignore
 
+        # due and completed to date
+        # "due": "2023-10-30T23:00:00Z"
+        for field in ("due", "completed"):
+            if len(task[field]) > 1:
+                my_dt = dt.datetime.fromisoformat(task[field].replace("Z", " +00:00"))
+                # convert to local time and than date only
+                task[field] = my_dt.astimezone(tz=ZONE).date()  # type: ignore
+            else:
+                task[field] = None  # type: ignore
+
+        # add overdue
+        if task["due"] and task["completed"] and task["due"] <= task["completed"]:
+            task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
+        else:
+            task["overdue"] = None  # type: ignore
+
+        # add completed week
+        if task["completed"]:
+            year = task["completed"].isocalendar()[0]
+            week = task["completed"].isocalendar()[1]
+            task["completed_week"] = dt.date.fromisocalendar(year, week, 1)
+            del week, year
+        else:
+            task["completed_week"] = None
+
+        # add url
+        task[
+            "url"
+        ] = f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+
         list_flat2.append(task)  # type: ignore
+
     return list_flat2
 
 
 def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:
     """Convert tasks from list of dicts to Pandas DataFrame."""
     df = pd.DataFrame.from_records(list_flat2)
-
-    for col in ("due", "completed"):
-        df[col] = (
-            pd.to_datetime(df[col], format="%Y-%m-%dT%H:%M:%S%z")
-            .dt.tz_convert(tz=TZ)
-            .dt.tz_localize(None)
-            .dt.date
-        )
-
-    # df["overdue"] = df["completed"] - df["due"]
+    df["overdue"] = df["overdue"].astype("Int64")
 
     return df
 
 
 if __name__ == "__main__":
-    print("\nRTM Lists")
+    # print("\nRTM Lists")
     rtm_lists = get_lists()
     d_list_id_to_name = {}
     for my_tasks_per_list in rtm_lists:
@@ -151,15 +178,20 @@ if __name__ == "__main__":
 
     print("\nRTM tasks completed this year")
     rtm_tasks = get_tasks(
-        my_filter="CompletedAfter:10/02/2023 CompletedBefore:01/01/2999"  #
+        my_filter="CompletedAfter:31/12/2023"  #  CompletedBefore:01/01/2999
     )
     rtm_tasks_flat = flatten_tasks(rtm_tasks, d_list_id_to_name)
-    rtm_tasks_flat = fix_task_fields(rtm_tasks_flat)
+    rtm_tasks_flat = convert_task_fields(rtm_tasks_flat)
 
     # for task in rtm_tasks_flat:
-    #     print(task)
+    #     print(task["name"], task["completed"], task["completed_week"])
 
     df = tasks_to_df(rtm_tasks_flat)
+    df = (
+        df[["completed_week"]]
+        .groupby(["completed_week"])
+        .agg(count=("completed_week", "count"))
+    )
 
     print(df)
     df.to_csv(

@@ -40,10 +40,8 @@ def get_lists() -> list[dict[str, str]]:
 def get_rmt_lists() -> list[dict[str, str]]:
     """Fetch lists from RTM."""
     json_data = rtm_call_method(method="rtm.lists.getList", arguments={})
-
     lists = json_data["lists"]["list"]  # type: ignore
     lists = sorted(lists, key=lambda x: (x["smart"], x["name"]), reverse=False)  # type: ignore
-
     return lists  # type: ignore
 
 
@@ -79,7 +77,6 @@ def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:
     }
     json_data = rtm_call_method(method="rtm.tasks.getList", arguments=arguments)
     tasks = json_data["tasks"]["list"]  # type: ignore
-
     return tasks  # type: ignore
 
 
@@ -133,16 +130,14 @@ def convert_task_fields(  # noqa: C901, PLR0912
             task["estimate"] = int(task["estimate"]) * 60  # type: ignore
 
         # priority
-        # 3 -> 1, 1->2, 2->2, N->1
+        # N->1, 3->1, 2->2, 1 -> 4
         # no prio -> prio 1
-        if task["priority"] == "N":
+        if task["priority"] == "N" or task["priority"] == "3":
             task["priority"] = 1  # type: ignore
-        elif task["priority"] == "1":
-            task["priority"] = 3  # type: ignore
         elif task["priority"] == "2":
             task["priority"] = 2  # type: ignore
-        elif task["priority"] == "3":
-            task["priority"] = 1  # type: ignore
+        elif task["priority"] == "1":
+            task["priority"] = 4  # type: ignore
         else:
             raise Exception("E: unknown priority:" + task["priority"])  # noqa: TRY002
 
@@ -250,7 +245,7 @@ AND NOT list:Taschengeld
     # add link to name
     df["name"] = "<a href='" + df["url"] + "' target='_blank'>" + df["name"] + "</a>"
     # export to html
-    df = df[["name", "due", "overdue", "priority", "overdue_priority"]]
+    df = df[["name", "due", "overdue", "priority", "overdue_priority", "estimate"]]
     df.to_html(
         "out-overdue.html",
         index=False,

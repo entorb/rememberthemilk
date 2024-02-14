@@ -34,6 +34,7 @@ API_KEY = config.get("settings", "api_key")
 SHARED_SECRET = config.get("settings", "shared_secret")
 TOKEN = config.get("settings", "token")
 TZ = ZoneInfo(config.get("settings", "timezone"))
+DATE_TODAY = dt.datetime.now(tz=TZ).date()
 
 URL_RTM_BASE = "https://api.rememberthemilk.com/services/rest/"
 
@@ -257,7 +258,7 @@ def get_tasks(my_filter: str) -> list[dict[str, str]]:
     my_filter = re.sub(r"\s+", " ", my_filter, flags=re.DOTALL)
     h = gen_md5_string(my_filter)
     cache_file = Path(f"cache/tasks-{h}.json")
-    if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 60):
+    if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 3600):
         print(f"Using cache file: {cache_file}")
         tasks = json_read(cache_file)
     else:
@@ -314,7 +315,6 @@ def convert_task_fields(  # noqa: C901, PLR0912
 ) -> list[dict[str, str | int]]:
     """
     Convert some fields to int or date."""
-    date_today = dt.datetime.now(tz=TZ).date()
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
         # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
@@ -357,8 +357,8 @@ def convert_task_fields(  # noqa: C901, PLR0912
         # add overdue
         if task["due"] and task["completed"] and task["due"] <= task["completed"]:
             task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
-        elif task["due"] and not task["completed"] and task["due"] < date_today:  # type: ignore
-            task["overdue"] = (date_today - task["due"]).days  # type: ignore
+        elif task["due"] and not task["completed"] and task["due"] < DATE_TODAY:  # type: ignore
+            task["overdue"] = (DATE_TODAY - task["due"]).days  # type: ignore
         else:
             task["overdue"] = None  # type: ignore
 
@@ -395,3 +395,28 @@ def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:
     df["estimate"] = df["estimate"].astype("Int64")
 
     return df
+
+
+def df_name_url_to_html(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert name and url to html.
+
+    name is html encoded first
+    """
+    # html encoding of column "name"
+    df["name"] = df["name"].str.encode("ascii", "xmlcharrefreplace").str.decode("utf-8")
+    # add url link to name
+    df["name"] = '<a href="' + df["url"] + '" target="_blank">' + df["name"] + "</a>"
+    return df
+
+
+def df_to_html(df: pd.DataFrame, filename: str) -> None:
+    """Export DF to html."""
+    print(f"Exporting to {filename}")
+    df.to_html(
+        filename,
+        index=False,
+        render_links=False,
+        escape=False,
+        justify="center",
+    )

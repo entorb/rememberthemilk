@@ -46,6 +46,15 @@ def get_rmt_lists() -> list[dict[str, str]]:
     return lists  # type: ignore
 
 
+def get_tasks_as_df(my_filter: str, d_list_id_to_name: dict[int, str]) -> pd.DataFrame:
+    """Fetch filtered tasks from RTM or cache if recent."""
+    tasks = get_tasks(my_filter)
+    list_flat = flatten_tasks(rtm_tasks=tasks, d_list_id_to_name=d_list_id_to_name)
+    list_flat2 = convert_task_fields(list_flat)
+    df = tasks_to_df(list_flat2)
+    return df
+
+
 def get_tasks(my_filter: str) -> list[dict[str, str]]:
     """Fetch filtered tasks from RTM or cache if recent."""
     h = gen_md5_string(my_filter)
@@ -103,9 +112,12 @@ def flatten_tasks(
     return list_flat
 
 
-def convert_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str | int]]:
+def convert_task_fields(  # noqa: C901, PLR0912
+    list_flat: list[dict[str, str]],
+) -> list[dict[str, str | int]]:
     """
     Convert some fields to int or date."""
+    date_today = dt.datetime.now(tz=ZONE).date()
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
         # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
@@ -117,8 +129,19 @@ def convert_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str |
             task["estimate"] = task["estimate"].replace("H", "")
             task["estimate"] = int(task["estimate"]) * 60  # type: ignore
 
+        # priority
+        # 3 -> 1, 1->2, 2->2, N->1
         # no prio -> prio 1
-        task["priority"] = int(task["priority"].replace("N", "1"))  # type: ignore
+        if task["priority"] == "N":
+            task["priority"] = 1  # type: ignore
+        elif task["priority"] == "1":
+            task["priority"] = 3  # type: ignore
+        elif task["priority"] == "2":
+            task["priority"] = 2  # type: ignore
+        elif task["priority"] == "3":
+            task["priority"] = 1  # type: ignore
+        else:
+            raise Exception("E: unknown priority:" + task["priority"])  # noqa: TRY002
 
         task["postponed"] = int(task["postponed"])  # type: ignore
 
@@ -135,17 +158,25 @@ def convert_task_fields(list_flat: list[dict[str, str]]) -> list[dict[str, str |
         # add overdue
         if task["due"] and task["completed"] and task["due"] <= task["completed"]:
             task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
+        if task["due"] and not task["completed"] and task["due"] < date_today:  # type: ignore
+            task["overdue"] = (date_today - task["due"]).days  # type: ignore
         else:
             task["overdue"] = None  # type: ignore
 
+        # overdue prio
+        if task["overdue"]:
+            task["overdue priority"] = task["priority"] * task["overdue"]  # type: ignore
+        else:
+            task["overdue priority"] = None  # type: ignore
+
         # add completed week
         if task["completed"]:
-            year = task["completed"].isocalendar()[0]
-            week = task["completed"].isocalendar()[1]
-            task["completed_week"] = dt.date.fromisocalendar(year, week, 1)
+            year = task["completed"].isocalendar()[0]  # type: ignore
+            week = task["completed"].isocalendar()[1]  # type: ignore
+            task["completed_week"] = dt.date.fromisocalendar(year, week, 1)  # type: ignore
             del week, year
         else:
-            task["completed_week"] = None
+            task["completed_week"] = None  # type: ignore
 
         # add url
         task[
@@ -180,26 +211,48 @@ if __name__ == "__main__":
     #     )
 
     print("\nRTM tasks completed this year")
-    rtm_tasks = get_tasks(
-        my_filter="CompletedAfter:31/12/2023"  #  CompletedBefore:01/01/2999
+    my_date = dt.date(2024, 1, 1)
+    df = get_tasks_as_df(
+        my_filter=f'CompletedAfter:{my_date.strftime("%d/%m/%Y")}',
+        d_list_id_to_name=d_list_id_to_name,
     )
-    rtm_tasks_flat = flatten_tasks(rtm_tasks, d_list_id_to_name)
-    rtm_tasks_flat = convert_task_fields(rtm_tasks_flat)
 
-    # for task in rtm_tasks_flat:
-    #     print(task["name"], task["completed"], task["completed_week"])
-
-    df = tasks_to_df(rtm_tasks_flat)
     df = (
         df[["completed_week"]]
         .groupby(["completed_week"])
         .agg(count=("completed_week", "count"))
     )
-
     print(df)
-    df.to_csv(
-        "out.tsv",
-        sep="\t",
-        lineterminator="\n",
+
+    # Tasks overdue
+    my_filter = """
+dueBefore:Today
+AND NOT completedAfter:01/01/2000
+AND NOT list:Taschengeld
+""".replace("\n", " ")
+    df = get_tasks_as_df(
+        my_filter=my_filter,
+        d_list_id_to_name=d_list_id_to_name,
     )
-    df.to_excel("out.xlsx", index=False)
+    df = df.sort_values(by=["overdue priority"], ascending=False)
+
+    # html encoding of column name only
+    df["name"] = df["name"].str.encode("ascii", "xmlcharrefreplace").str.decode("utf-8")
+    # add link to name
+    df["name"] = "<a href='" + df["url"] + "' target='_blank'>" + df["name"] + "</a>"
+    # export to html
+    df[["name", "due", "overdue", "priority", "overdue priority"]].to_html(
+        "out-overdue.html",
+        index=False,
+        render_links=False,
+        escape=False,
+        justify="center",
+    )
+
+    # print(df)
+    # df.to_csv(
+    #     "out.tsv",
+    #     sep="\t",
+    #     lineterminator="\n",
+    # )
+    # df.to_excel("out.xlsx", index=False)

@@ -8,6 +8,7 @@ Playing with RememberTheMilk's API.
 # list of available API methods can be fount at https://www.rememberthemilk.com/services/api/methods.rtm
 
 import datetime as dt
+import re
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -57,6 +58,8 @@ def get_tasks_as_df(my_filter: str, d_list_id_to_name: dict[int, str]) -> pd.Dat
 
 def get_tasks(my_filter: str) -> list[dict[str, str]]:
     """Fetch filtered tasks from RTM or cache if recent."""
+    # replace whitespaces by space
+    my_filter = re.sub(r"\s+", " ", my_filter, flags=re.DOTALL)
     h = gen_md5_string(my_filter)
     cache_file = Path(f"cache/tasks-{h}.json")
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 60):
@@ -158,16 +161,16 @@ def convert_task_fields(  # noqa: C901, PLR0912
         # add overdue
         if task["due"] and task["completed"] and task["due"] <= task["completed"]:
             task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
-        if task["due"] and not task["completed"] and task["due"] < date_today:  # type: ignore
+        elif task["due"] and not task["completed"] and task["due"] < date_today:  # type: ignore
             task["overdue"] = (date_today - task["due"]).days  # type: ignore
         else:
             task["overdue"] = None  # type: ignore
 
         # overdue prio
         if task["overdue"]:
-            task["overdue priority"] = task["priority"] * task["overdue"]  # type: ignore
+            task["overdue_priority"] = task["priority"] * task["overdue"]  # type: ignore
         else:
-            task["overdue priority"] = None  # type: ignore
+            task["overdue_priority"] = None  # type: ignore
 
         # add completed week
         if task["completed"]:
@@ -216,32 +219,39 @@ if __name__ == "__main__":
         my_filter=f'CompletedAfter:{my_date.strftime("%d/%m/%Y")}',
         d_list_id_to_name=d_list_id_to_name,
     )
+    df = df.sort_values(by=["completed"], ascending=False)
+    df = df.drop(columns=["list_id", "task_id", "url"])
 
-    df = (
-        df[["completed_week"]]
-        .groupby(["completed_week"])
-        .agg(count=("completed_week", "count"))
+    df.to_excel("out-done-year.xlsx", index=False)
+
+    df = df.groupby(["completed_week"]).agg(
+        count=("completed_week", "count"),
+        sum_prio=("priority", "sum"),
+        sum_overdue_prio=("overdue_priority", "sum"),
     )
     print(df)
 
-    # Tasks overdue
+    print("\nRTM tasks overdue")
     my_filter = """
 dueBefore:Today
 AND NOT completedAfter:01/01/2000
 AND NOT list:Taschengeld
-""".replace("\n", " ")
+"""
     df = get_tasks_as_df(
         my_filter=my_filter,
         d_list_id_to_name=d_list_id_to_name,
     )
-    df = df.sort_values(by=["overdue priority"], ascending=False)
+    df = df.sort_values(by=["overdue_priority"], ascending=False)
+    df = df.reset_index()
 
+    print(df[["name", "due", "overdue", "priority", "overdue_priority"]])
     # html encoding of column name only
     df["name"] = df["name"].str.encode("ascii", "xmlcharrefreplace").str.decode("utf-8")
     # add link to name
     df["name"] = "<a href='" + df["url"] + "' target='_blank'>" + df["name"] + "</a>"
     # export to html
-    df[["name", "due", "overdue", "priority", "overdue priority"]].to_html(
+    df = df[["name", "due", "overdue", "priority", "overdue_priority"]]
+    df.to_html(
         "out-overdue.html",
         index=False,
         render_links=False,
@@ -255,4 +265,3 @@ AND NOT list:Taschengeld
     #     sep="\t",
     #     lineterminator="\n",
     # )
-    # df.to_excel("out.xlsx", index=False)

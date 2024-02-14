@@ -7,6 +7,8 @@ noqa
 prio
 rememberthemilk
 rrule
+Taschengeld
 taskseries
 Torben
 WKST
+xmlcharrefreplace

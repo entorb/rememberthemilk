@@ -5,6 +5,7 @@ import json
 import time
 from configparser import ConfigParser
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -20,8 +21,10 @@ config.read("rememberthemilk.ini")
 API_KEY = config.get("settings", "api_key")
 SHARED_SECRET = config.get("settings", "shared_secret")
 TOKEN = config.get("settings", "token")
+TZ = ZoneInfo(config.get("settings", "timezone"))
 
 URL_RTM_BASE = "https://api.rememberthemilk.com/services/rest/"
+
 
 #
 # helper functions 1: converters
@@ -111,9 +114,17 @@ def perform_rest_call(url: str) -> str:
     """
     Perform a simple REST call to an url.
 
+    if a cache file is more recent than 1 sec, wait for 1 sec
     Assert status = 200
     Return the response text.
     """
+    # rate limit: 1 request per second
+    for file_path in Path("cache/").glob("*.json"):
+        if int(time.time()) == int(file_path.stat().st_mtime):
+            print("sleeping for 1s to prevent rate limit")
+            time.sleep(1)
+            break
+
     resp = requests.get(url, timeout=3)
     if resp.status_code != 200:  # noqa: PLR2004
         msg = f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"

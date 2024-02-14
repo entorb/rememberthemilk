@@ -10,20 +10,17 @@ Playing with RememberTheMilk's API.
 import datetime as dt
 import re
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import pandas as pd
 
 from helper import (
+    TZ,
     check_cache_file_available_and_recent,
     gen_md5_string,
     json_read,
     json_write,
     rtm_call_method,
 )
-
-TZ = "Europe/Berlin"
-ZONE = ZoneInfo(TZ)
 
 
 def get_lists() -> list[dict[str, str]]:
@@ -117,7 +114,7 @@ def convert_task_fields(  # noqa: C901, PLR0912
 ) -> list[dict[str, str | int]]:
     """
     Convert some fields to int or date."""
-    date_today = dt.datetime.now(tz=ZONE).date()
+    date_today = dt.datetime.now(tz=TZ).date()
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
         # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
@@ -153,7 +150,7 @@ def convert_task_fields(  # noqa: C901, PLR0912
             if len(task[field]) > 1:
                 my_dt = dt.datetime.fromisoformat(task[field].replace("Z", " +00:00"))
                 # convert to local time and than date only
-                task[field] = my_dt.astimezone(tz=ZONE).date()  # type: ignore
+                task[field] = my_dt.astimezone(tz=TZ).date()  # type: ignore
             else:
                 task[field] = None  # type: ignore
 

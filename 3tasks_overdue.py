@@ -27,10 +27,12 @@ AND NOT list:Taschengeld
     df = df.sort_values(by=["overdue_prio"], ascending=False)
     df = df.reset_index()
 
-    print(df[["name", "due", "overdue", "prio", "overdue_prio", "estimate"]])
+    cols = ["name", "list", "due", "overdue", "prio", "overdue_prio", "estimate"]
+
+    print(df[cols])
 
     df = df_name_url_to_html(df)
     df_to_html(
-        df[["name", "due", "overdue", "prio", "overdue_prio", "estimate"]],
+        df[cols],
         "out-overdue.html",
     )

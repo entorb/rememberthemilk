@@ -4,6 +4,8 @@
 * analyze done and pending tasks
 * caching to reduce API usage
 
+Disclaimer: This code uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
+
 ## Setup
 
 ### Register for API usage
@@ -49,6 +51,8 @@ see original post at <https://www.rememberthemilk.com/forums/tips/31034/>
 
 I use RTM for several years now, mostly for keeping track of periodic todos, e.g. maintenance, backups, doc appointments, cleaning my home, ... and also for one-timers I tend to postpone.
 
+See the [RTM forum](https://www.rememberthemilk.com/forums/) for other tips.
+
 ### My RTM setup for tasks
 
 * I use some different lists to group tasks
@@ -76,6 +80,8 @@ Smart lists that remind me of adding missing date, prio and estimate
 * no Estimate -> `hasTimeEstimate:false`
 * no List -> `list:Inbox`
 * no Tag -> `isTagged:false`
+
+see <https://www.rememberthemilk.com/help/?ctx=basics.search.advanced>
 
 ### Goal setting and tracking
 

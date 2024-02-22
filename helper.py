@@ -318,15 +318,19 @@ def convert_task_fields(  # noqa: C901, PLR0912
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
         # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
-        task["estimate"] = task["estimate"].replace("PT", "")
-        if task["estimate"].endswith("M"):
-            task["estimate"] = task["estimate"].replace("M", "")
-            task["estimate"] = int(task["estimate"])  # type: ignore
-        elif task["estimate"].endswith("H"):
-            task["estimate"] = task["estimate"].replace("H", "")
-            task["estimate"] = int(task["estimate"]) * 60  # type: ignore
-        elif len(task["estimate"]) == 0:
+
+        if len(task["estimate"]) == 0:
             task["estimate"] = None  # type: ignore
+        elif "H" in task["estimate"] or "M" in task["estimate"]:
+            task["estimate"] = task["estimate"].replace("PT", "")
+            task_time_min = 0
+            if "H" in task["estimate"]:
+                s = task["estimate"].split("H")
+                task_time_min += int(s[0]) * 60
+                task["estimate"] = s[1]
+            if task["estimate"].endswith("M"):
+                task_time_min += int(task["estimate"][:-1])
+            task["estimate"] = task_time_min  # type: ignore
         else:
             raise Exception("E: unknown estimate:" + task["estimate"])  # noqa: TRY002
 

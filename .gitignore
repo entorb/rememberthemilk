@@ -5,3 +5,4 @@ cache/
 *.ini
 rememberthemilk.ini
 out-*
+.coverage

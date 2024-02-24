@@ -62,11 +62,11 @@ def json_parse_response(response_text: str) -> dict[str, str]:
     try:
         d_json = json.loads(response_text)
     except json.JSONDecodeError:
-        msg = f"E: invalid JSON:\n{response_text}"
-        raise Exception(msg)  # noqa: B904, TRY002
+        msg = f"Invalid JSON:\n{response_text}"
+        raise ValueError(msg) from None
     if d_json["rsp"]["stat"] != "ok":
-        msg = f"E: status not ok:\n{d_json}"
-        raise Exception(msg)  # noqa: TRY002
+        msg = f"Status not ok:\n{d_json}"
+        raise ValueError(msg) from None
     del d_json["rsp"]["stat"]
     return d_json["rsp"]
 
@@ -97,7 +97,7 @@ def json_write(file_path: Path, json_data: list[dict[str, str]]) -> None:
 #     my_re = re.compile(s1 + "(.*)" + s2, flags=re.DOTALL)
 #     my_matches = my_re.search(s)
 #     if my_matches is None:
-#         msg = f"E: can't find '{s1}'...'{s2}' in '{s}'"
+#         msg = f"can't find '{s1}'...'{s2}' in '{s}'"
 #         raise Exception(msg)
 #     out = my_matches.group(1)
 #     return out
@@ -140,8 +140,8 @@ def perform_rest_call(url: str) -> str:
 
     resp = requests.get(url, timeout=3)
     if resp.status_code != 200:  # noqa: PLR2004
-        msg = f"E: bad response. status code:{resp.status_code}, text:\n{resp.text}"
-        raise Exception(msg)  # noqa: TRY002
+        msg = f"Bad response. status code:{resp.status_code}, text:\n{resp.text}"
+        raise ValueError(msg) from None
     return resp.text
 
 
@@ -211,7 +211,7 @@ def get_lists_dict() -> dict[int, str]:
     lists_dict = {}
     for el in rtm_lists:
         # {'id': '25825681', 'name': 'Name of my List', 'deleted': '0', 'locked': '0', 'archived': '0', 'position': '0', 'smart': '0', 'sort_order': '0'}  # noqa: E501
-        lists_dict[el["id"]] = el["name"]
+        lists_dict[int(el["id"])] = el["name"]
     # for my_tasks_per_list in rtm_lists:
     #     print(
     #         my_tasks_per_list["id"],
@@ -246,9 +246,9 @@ def get_rmt_lists() -> list[dict[str, str]]:
 def get_tasks_as_df(my_filter: str, lists_dict: dict[int, str]) -> pd.DataFrame:
     """Fetch filtered tasks from RTM or cache if recent."""
     tasks = get_tasks(my_filter)
-    list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
-    list_flat2 = convert_task_fields(list_flat)
-    df = tasks_to_df(list_flat2)
+    tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
+    tasks_list_flat2 = convert_task_fields(tasks_list_flat)
+    df = tasks_to_df(tasks_list_flat2)
     return df
 
 
@@ -296,7 +296,7 @@ def flatten_tasks(
                 d = {
                     "list_id": tasks_per_list["id"],  # type: ignore
                     "task_id": task["id"],  # type: ignore
-                    "list": lists_dict[tasks_per_list["id"]],  # type: ignore
+                    "list": lists_dict[int(tasks_per_list["id"])],  # type: ignore
                     "name": taskseries["name"],  # type: ignore
                     "due": task["due"],  # type: ignore
                     "completed": task["completed"],  # type: ignore
@@ -310,7 +310,7 @@ def flatten_tasks(
     return list_flat
 
 
-def convert_task_fields(  # noqa: C901, PLR0912
+def convert_task_fields(  # noqa: C901, PLR0912, PLR0915
     list_flat: list[dict[str, str]],
 ) -> list[dict[str, str | int]]:
     """
@@ -318,7 +318,8 @@ def convert_task_fields(  # noqa: C901, PLR0912
     list_flat2: list[dict[str, str | int]] = []
     for task in list_flat:
         # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
-
+        task["task_id"] = int(task["task_id"])  # type: ignore
+        task["list_id"] = int(task["list_id"])  # type: ignore
         if len(task["estimate"]) == 0:
             task["estimate"] = None  # type: ignore
         elif "H" in task["estimate"] or "M" in task["estimate"]:
@@ -332,7 +333,8 @@ def convert_task_fields(  # noqa: C901, PLR0912
                 task_time_min += int(task["estimate"][:-1])
             task["estimate"] = task_time_min  # type: ignore
         else:
-            raise Exception("E: unknown estimate:" + task["estimate"])  # noqa: TRY002
+            msg = "Unknown estimate:" + task["estimate"]
+            raise ValueError(msg) from None
 
         # priority
         # N->1, 3->1, 2->2, 1 -> 4
@@ -344,7 +346,8 @@ def convert_task_fields(  # noqa: C901, PLR0912
         elif task["prio"] == "1":
             task["prio"] = 4  # type: ignore
         else:
-            raise Exception("E: unknown priority:" + task["prio"])  # noqa: TRY002
+            msg = "Unknown priority:" + task["prio"]
+            raise ValueError(msg) from None
 
         task["postponed"] = int(task["postponed"])  # type: ignore
 

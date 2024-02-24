@@ -1,0 +1,181 @@
+[
+  {
+    "id": "50346883",
+    "taskseries": [
+      {
+        "id": "531861448",
+        "created": "2024-02-24T01:57:29Z",
+        "modified": "2024-02-24T01:57:44Z",
+        "name": "unit-test 1.1 completed",
+        "source": "web",
+        "url": "https://entorb.net/",
+        "location_id": "",
+        "tags": {
+          "tag": [
+            "doc"
+          ]
+        },
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525734",
+            "due": "2024-02-27T23:00:00Z",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:57:29Z",
+            "completed": "2024-02-24T01:57:44Z",
+            "deleted": "",
+            "priority": "2",
+            "postponed": "0",
+            "estimate": "PT1H30M"
+          }
+        ]
+      },
+      {
+        "id": "531861379",
+        "created": "2024-02-24T01:55:20Z",
+        "modified": "2024-02-24T01:56:46Z",
+        "name": "unit-test 1",
+        "source": "js",
+        "url": "https://entorb.net/",
+        "location_id": "",
+        "tags": {
+          "tag": [
+            "doc"
+          ]
+        },
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525662",
+            "due": "2024-02-27T23:00:00Z",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:55:20Z",
+            "completed": "",
+            "deleted": "",
+            "priority": "2",
+            "postponed": "0",
+            "estimate": "PT1H30M"
+          }
+        ]
+      },
+      {
+        "id": "531861467",
+        "created": "2024-02-24T01:57:54Z",
+        "modified": "2024-02-24T01:57:54Z",
+        "name": "unit test 2: repeat",
+        "source": "js",
+        "url": "",
+        "location_id": "",
+        "rrule": {
+          "every": "0",
+          "$t": "FREQ=WEEKLY;INTERVAL=1;WKST=SU"
+        },
+        "tags": [],
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525753",
+            "due": "2024-03-01T23:00:00Z",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:57:54Z",
+            "completed": "",
+            "deleted": "",
+            "priority": "N",
+            "postponed": "0",
+            "estimate": ""
+          }
+        ]
+      },
+      {
+        "id": "531861422",
+        "created": "2024-02-24T01:57:08Z",
+        "modified": "2024-02-24T01:57:46Z",
+        "name": "unit-test 1.2 completed",
+        "source": "web",
+        "url": "https://entorb.net/",
+        "location_id": "",
+        "tags": {
+          "tag": [
+            "doc"
+          ]
+        },
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525708",
+            "due": "2024-02-27T23:00:00Z",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:57:08Z",
+            "completed": "2024-02-24T01:57:46Z",
+            "deleted": "",
+            "priority": "2",
+            "postponed": "0",
+            "estimate": "PT1H30M"
+          }
+        ]
+      },
+      {
+        "id": "531861389",
+        "created": "2024-02-24T01:55:45Z",
+        "modified": "2024-02-24T01:57:51Z",
+        "name": "unit test 2: repeat",
+        "source": "js",
+        "url": "",
+        "location_id": "",
+        "rrule": {
+          "every": "0",
+          "$t": "FREQ=WEEKLY;INTERVAL=1;WKST=SU"
+        },
+        "tags": [],
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525672",
+            "due": "",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:55:45Z",
+            "completed": "2024-02-24T01:57:51Z",
+            "deleted": "",
+            "priority": "N",
+            "postponed": "0",
+            "estimate": ""
+          }
+        ]
+      },
+      {
+        "id": "531861464",
+        "created": "2024-02-24T01:57:51Z",
+        "modified": "2024-02-24T01:57:54Z",
+        "name": "unit test 2: repeat",
+        "source": "js",
+        "url": "",
+        "location_id": "",
+        "rrule": {
+          "every": "0",
+          "$t": "FREQ=WEEKLY;INTERVAL=1;WKST=SU"
+        },
+        "tags": [],
+        "participants": [],
+        "notes": [],
+        "task": [
+          {
+            "id": "1029525750",
+            "due": "2024-03-01T23:00:00Z",
+            "has_due_time": "0",
+            "added": "2024-02-24T01:57:51Z",
+            "completed": "2024-02-24T01:57:54Z",
+            "deleted": "",
+            "priority": "N",
+            "postponed": "0",
+            "estimate": ""
+          }
+        ]
+      }
+    ]
+  }
+]

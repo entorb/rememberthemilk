@@ -1,0 +1,24 @@
+
+    [
+    {
+        "id": "50346883",
+        "name": "unit-tests",
+        "deleted": "0",
+        "locked": "1",
+        "archived": "0",
+        "position": "-1",
+        "smart": "0",
+        "sort_order": "0"
+    },
+    {
+        "id": "43953598",
+        "name": "no Prio",
+        "deleted": "0",
+        "locked": "0",
+        "archived": "0",
+        "position": "0",
+        "smart": "1",
+        "sort_order": "0",
+        "filter": "priority:none"
+    }
+    ]

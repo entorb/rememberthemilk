@@ -38,8 +38,15 @@ def prepare_cache_tasks() -> None:
     shutil.copyfile(cache_source, cache_target)
 
 
+# TODO: use pytest fixtures instead
 prepare_cache_lists()
 prepare_cache_tasks()
+# TODO: use pytest parameterize
+# @pytest.mark.parametrize(
+#     "name, input, expected_output",
+#     [
+#         ["Empty String", "", ""],
+#         ["Empty String", " ", ""],
 
 
 def test_dict_to_url_param() -> None:

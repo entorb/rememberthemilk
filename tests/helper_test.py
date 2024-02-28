@@ -19,6 +19,7 @@ from helper import (
     get_lists_dict,
     get_tasks,
     json_parse_response,
+    task_est_to_minutes,
     tasks_to_df,
 )
 
@@ -156,6 +157,13 @@ def test_convert_task_fields() -> None:
         tasks_list_flat2[3]["url"]
         == "https://www.rememberthemilk.com/app/#list/50346883/1029525734"
     )
+
+
+def test_task_est_to_minutes() -> None:
+    assert task_est_to_minutes("") is None
+    assert task_est_to_minutes("PT30M") == 30
+    assert task_est_to_minutes("PT3H") == 3 * 60
+    assert task_est_to_minutes("PT2H30M") == 2 * 60 + 30
 
 
 def test_get_tasks_as_df() -> None:

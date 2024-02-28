@@ -72,12 +72,13 @@ What I love most of RTM are the dynamic smart lists. Here some examples:
 * series -> `isRepeating:true AND NOT list:MyListToExclude`
 * minor (low handing fruits) -> `dueBefore:"1 week" and timeEstimate:"<15 minutes" AND NOT list:MyListToExclude`
 * done 7d (to celebrate what I accomplished) -> `completedWithin:"7 day of today"`
+* created more than a week ago -> `NOT addedWithin:"1 week of today"`
 
 Smart lists that remind me of adding missing date, prio and estimate
 
-* no Date -> `due:never`
-* no Prio -> `priority:none`
-* no Estimate -> `hasTimeEstimate:false`
+* no Date -> `due:never AND NOT addedWithin:"1 week of today"`
+* no Prio -> `priority:none AND NOT addedWithin:"1 week of today"`
+* no Estimate -> `hasTimeEstimate:false AND NOT addedWithin:"1 week of today"`
 * no List -> `list:Inbox`
 * no Tag -> `isTagged:false`
 

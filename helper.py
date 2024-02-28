@@ -38,6 +38,7 @@ DATE_TODAY = dt.datetime.now(tz=TZ).date()
 
 URL_RTM_BASE = "https://api.rememberthemilk.com/services/rest/"
 
+PRIORITY_MAP = {"N": 1, "3": 1, "2": 2, "1": 4}
 
 #
 # helper functions 1: converters
@@ -310,48 +311,33 @@ def flatten_tasks(
     return list_flat
 
 
-def convert_task_fields(  # noqa: C901, PLR0912, PLR0915
+def convert_task_fields(
     list_flat: list[dict[str, str]],
 ) -> list[dict[str, str | int]]:
     """
     Convert some fields to int or date."""
     list_flat2: list[dict[str, str | int]] = []
+    # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
     for task in list_flat:
-        # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
+        # IDs to int
         task["task_id"] = int(task["task_id"])  # type: ignore
         task["list_id"] = int(task["list_id"])  # type: ignore
-        if len(task["estimate"]) == 0:
-            task["estimate"] = None  # type: ignore
-        elif "H" in task["estimate"] or "M" in task["estimate"]:
-            task["estimate"] = task["estimate"].replace("PT", "")
-            task_time_min = 0
-            if "H" in task["estimate"]:
-                s = task["estimate"].split("H")
-                task_time_min += int(s[0]) * 60
-                task["estimate"] = s[1]
-            if task["estimate"].endswith("M"):
-                task_time_min += int(task["estimate"][:-1])
-            task["estimate"] = task_time_min  # type: ignore
-        else:
-            msg = "Unknown estimate:" + task["estimate"]
-            raise ValueError(msg) from None
 
-        # priority
-        # N->1, 3->1, 2->2, 1 -> 4
-        # no prio -> prio 1
-        if task["prio"] == "N" or task["prio"] == "3":
-            task["prio"] = 1  # type: ignore
-        elif task["prio"] == "2":
-            task["prio"] = 2  # type: ignore
-        elif task["prio"] == "1":
-            task["prio"] = 4  # type: ignore
+        # postponed count to int
+        task["postponed"] = int(task["postponed"])  # type: ignore
+
+        # estimate to minutes
+        task["estimate"] = task_est_to_minutes(est=task["estimate"])  # type: ignore
+
+        # priority to int
+        # N(=no)->1, 3->1, 2->2, 1 -> 4
+        if task["prio"] in PRIORITY_MAP:
+            task["prio"] = PRIORITY_MAP[task["prio"]]  # type: ignore
         else:
             msg = "Unknown priority:" + task["prio"]
             raise ValueError(msg) from None
 
-        task["postponed"] = int(task["postponed"])  # type: ignore
-
-        # due and completed to date
+        # due and completed to date, dropping timezone
         # "due": "2023-10-30T23:00:00Z"
         for field in ("due", "completed"):
             if len(task[field]) > 1:
@@ -361,37 +347,71 @@ def convert_task_fields(  # noqa: C901, PLR0912, PLR0915
             else:
                 task[field] = None  # type: ignore
 
-        # add overdue
-        if task["due"] and task["completed"] and task["due"] <= task["completed"]:
-            task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
-        elif task["due"] and not task["completed"] and task["due"] < DATE_TODAY:  # type: ignore
-            task["overdue"] = (DATE_TODAY - task["due"]).days  # type: ignore
-        else:
-            task["overdue"] = None  # type: ignore
-
-        # overdue prio
-        if task["overdue"]:
-            task["overdue_prio"] = task["prio"] * task["overdue"]  # type: ignore
-        else:
-            task["overdue_prio"] = None  # type: ignore
-
-        # add completed week
-        if task["completed"]:
-            year = task["completed"].isocalendar()[0]  # type: ignore
-            week = task["completed"].isocalendar()[1]  # type: ignore
-            task["completed_week"] = dt.date.fromisocalendar(year, week, 1)  # type: ignore
-            del week, year
-        else:
-            task["completed_week"] = None  # type: ignore
-
-        # add url
-        task[
-            "url"
-        ] = f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+        task = task_add_fields(task)  # type: ignore  # noqa: PLW2901
 
         list_flat2.append(task)  # type: ignore
 
     return list_flat2
+
+
+def task_est_to_minutes(est: str) -> int | None:
+    """Convert a time estimate string to minutes."""
+    if len(est) == 0:
+        return None  # type: ignore
+
+    task_time_min = 0
+    if "H" in est or "M" in est:
+        est = est.replace("PT", "")
+        if "H" in est:
+            s = est.split("H")
+            task_time_min += int(s[0]) * 60
+            est = s[1]
+        if est.endswith("M"):
+            task_time_min += int(est[:-1])
+        est = task_time_min  # type: ignore
+    else:
+        msg = "Unknown estimate:" + est
+        raise ValueError(msg) from None
+
+    return task_time_min
+
+
+def task_add_fields(
+    task: dict[str, str | int | dt.date],
+) -> dict[str, str | int | dt.date]:
+    """
+    Add some fields.
+
+    Add overdue, overdue_prio, completed_week, url
+    """
+    # add overdue
+    if task["due"] and task["completed"] and task["due"] <= task["completed"]:  # type: ignore
+        task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
+    elif task["due"] and not task["completed"] and task["due"] < DATE_TODAY:  # type: ignore
+        task["overdue"] = (DATE_TODAY - task["due"]).days  # type: ignore
+    else:
+        task["overdue"] = None  # type: ignore
+
+    # overdue prio
+    if task["overdue"]:
+        task["overdue_prio"] = task["prio"] * task["overdue"]  # type: ignore
+    else:
+        task["overdue_prio"] = None  # type: ignore
+
+    # add completed week
+    if task["completed"]:
+        year, week, _ = task["completed"].isocalendar()  # type: ignore
+        task["completed_week"] = dt.date.fromisocalendar(year, week, 1)  # type: ignore
+        del week, year
+    else:
+        task["completed_week"] = None  # type: ignore
+
+    # add url
+    task[
+        "url"
+    ] = f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+
+    return task
 
 
 def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:

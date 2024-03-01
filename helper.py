@@ -360,8 +360,8 @@ def task_est_to_minutes(est: str) -> int | None:
         return None  # type: ignore
 
     task_time_min = 0
-    if "H" in est or "M" in est:
-        est = est.replace("PT", "")
+    if est.startswith("PT") and ("H" in est or "M" in est):
+        est = est[2:]
         if "H" in est:
             s = est.split("H")
             task_time_min += int(s[0]) * 60

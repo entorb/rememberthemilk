@@ -3,11 +3,12 @@ Test helper functions.
 """
 
 # ruff: noqa: S101 D103 PLR2004
-
 import datetime as dt
 import json
 import shutil
 from pathlib import Path
+
+import pytest
 
 from helper import (
     convert_task_fields,
@@ -159,11 +160,12 @@ def test_convert_task_fields() -> None:
     )
 
 
-def test_task_est_to_minutes() -> None:
-    assert task_est_to_minutes("") is None
-    assert task_est_to_minutes("PT30M") == 30
-    assert task_est_to_minutes("PT3H") == 3 * 60
-    assert task_est_to_minutes("PT2H30M") == 2 * 60 + 30
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [("", None), ("PT30M", 30), ("PT3H", 3 * 60), ("PT2H30M", 2 * 60 + 30)],
+)
+def test_task_est_to_minutes(test_input: str, expected: int) -> None:
+    assert task_est_to_minutes(test_input) == expected
 
 
 def test_get_tasks_as_df() -> None:

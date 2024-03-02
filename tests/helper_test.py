@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 # Add parent directory to the Python path, so we can run this file directly
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, Path(__file__).parent.parent.as_posix())
 
 from helper import (
     convert_task_fields,

@@ -1,14 +1,18 @@
 """
 Test helper functions.
-"""
+"""  # noqa: INP001
 
 # ruff: noqa: S101 D103 PLR2004
 import datetime as dt
 import json
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
+
+# Add parent directory to the Python path, so we can run this file directly
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from helper import (
     convert_task_fields,

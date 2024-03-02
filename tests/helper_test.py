@@ -29,13 +29,23 @@ from helper import (
 )
 
 
-def prepare_cache_lists() -> None:
+@pytest.fixture(autouse=True)
+def _setup_tests():  # noqa: ANN202
+    cache_prepare_lists()
+    cache_prepare_tasks()
+
+    yield
+
+    cache_cleanup_test_data()
+
+
+def cache_prepare_lists() -> None:
     cache_source = Path("tests/test_data/lists.json")
     cache_target = Path("cache/lists.json")
     shutil.copyfile(cache_source, cache_target)
 
 
-def prepare_cache_tasks() -> None:
+def cache_prepare_tasks() -> None:
     my_filter = "list:unit-tests"
     # l = get_tasks(my_filter=my_filter)
     h = gen_md5_string(my_filter)
@@ -44,15 +54,13 @@ def prepare_cache_tasks() -> None:
     shutil.copyfile(cache_source, cache_target)
 
 
-# TODO: use pytest fixtures instead
-prepare_cache_lists()
-prepare_cache_tasks()
-# TODO: use pytest parameterize
-# @pytest.mark.parametrize(
-#     "name, input, expected_output",
-#     [
-#         ["Empty String", "", ""],
-#         ["Empty String", " ", ""],
+def cache_cleanup_test_data() -> None:
+    Path("cache/lists.json").unlink(missing_ok=True)
+
+    my_filter = "list:unit-tests"
+    h = gen_md5_string(my_filter)
+    cache_target = Path(f"cache/tasks-{h}.json")
+    cache_target.unlink(missing_ok=True)
 
 
 def test_dict_to_url_param() -> None:
@@ -204,12 +212,3 @@ def test_df_name_url_to_html() -> None:
         df["name"].loc[3]
         == '<a href="https://www.rememberthemilk.com/app/#list/50346883/1029525734" target="_blank">unit-test 1.1 completed</a>'  # noqa: E501
     )
-
-
-def test_cleanup_cache_data() -> None:
-    Path("cache/lists.json").unlink(missing_ok=True)
-
-    my_filter = "list:unit-tests"
-    h = gen_md5_string(my_filter)
-    cache_target = Path(f"cache/tasks-{h}.json")
-    cache_target.unlink(missing_ok=True)

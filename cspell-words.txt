@@ -1,6 +1,7 @@
 # CSpell Custom Dictionary Words
 abcbazfegbaryxzfoo
 astype
+autouse
 frob
 lifehacks
 Menke

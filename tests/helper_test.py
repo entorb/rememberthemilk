@@ -19,10 +19,12 @@ from helper import (
     df_name_url_to_html,
     dict_to_url_param,
     flatten_tasks,
+    # gen_api_sig,
     gen_md5_string,
     get_lists,
     get_lists_dict,
     get_tasks,
+    get_tasks_as_df,
     json_parse_response,
     task_est_to_minutes,
     tasks_to_df,
@@ -63,18 +65,16 @@ def cache_cleanup_test_data() -> None:
     cache_target.unlink(missing_ok=True)
 
 
-def test_dict_to_url_param() -> None:
-    # Test empty dictionary
-    assert dict_to_url_param({}) == ""
-
-    # Test dictionary with single key-value pair
-    assert dict_to_url_param({"key": "value"}) == "key=value"
-
-    # Test dictionary with multiple key-value pairs
-    assert (
-        dict_to_url_param({"key1": "value1", "key2": "value2"})
-        == "key1=value1&key2=value2"
-    )
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        ({}, ""),  # empty
+        ({"key": "value"}, "key=value"),  # single
+        ({"key1": "value1", "key2": "value2"}, "key1=value1&key2=value2"),  # multiple
+    ],
+)
+def test_dict_to_url_param(test_input: dict[str, str], expected: str) -> None:
+    assert dict_to_url_param(test_input) == expected
 
 
 def test_gen_md5_string() -> None:
@@ -86,11 +86,19 @@ AND NOT list:Taschengeld
     assert gen_md5_string(my_filter) == "85d7cb53077789572349a3aabf8eb369"
 
 
+# def test_gen_api_sig() -> None:
+#     # problem: SHARED_SECRET is from config file and will hence fail in GitHub Actions
+#     d = {"key1": "value1", "key2": "value2"}
+#     assert gen_api_sig(d) == "ef309aa2591f0cff9491b3b0e6df8019"
+#     d = {"key2": "value2", "key1": "value1"}
+#     assert gen_api_sig(d) == "ef309aa2591f0cff9491b3b0e6df8019"
+
+
 def test_json_parse_response() -> None:
     # Test with single key-value pair
-    assert json_parse_response('{"rsp": {"stat": "ok", "key1": "value1"}}') == {
-        "key1": "value1"
-    }
+    assert json_parse_response(
+        '{"rsp": {"stat": "ok", "key1": "value1", "key2": "value2"}}'
+    ) == {"key1": "value1", "key2": "value2"}
 
 
 def test_get_lists() -> None:
@@ -149,6 +157,14 @@ def test_flatten_tasks() -> None:
     assert json.dumps(tasks_list_flat, indent=2) == json.dumps(data_expected, indent=2)
 
 
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [("", None), ("PT30M", 30), ("PT3H", 3 * 60), ("PT2H30M", 2 * 60 + 30)],
+)
+def test_task_est_to_minutes(test_input: str, expected: int) -> None:
+    assert task_est_to_minutes(test_input) == expected
+
+
 def test_convert_task_fields() -> None:
     my_filter = "list:unit-tests"
     tasks = get_tasks(my_filter)
@@ -172,28 +188,14 @@ def test_convert_task_fields() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    ("test_input", "expected"),
-    [("", None), ("PT30M", 30), ("PT3H", 3 * 60), ("PT2H30M", 2 * 60 + 30)],
-)
-def test_task_est_to_minutes(test_input: str, expected: int) -> None:
-    assert task_est_to_minutes(test_input) == expected
-
-
 def test_get_tasks_as_df() -> None:
     my_filter = "list:unit-tests"
-    tasks = get_tasks(my_filter)
     lists_dict = get_lists_dict()
-    tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
-    tasks_list_flat = sorted(
-        tasks_list_flat, key=lambda row: (row["task_id"]), reverse=False
-    )
-    tasks_list_flat2 = convert_task_fields(tasks_list_flat)
-
-    df = tasks_to_df(tasks_list_flat2)
-    assert len(df) == 6
-    assert df["task_id"].loc[3] == 1029525734
-    assert df["estimate"].loc[3] == 90
+    df = get_tasks_as_df(my_filter=my_filter, lists_dict=lists_dict)
+    assert len(df.index) == 6
+    df2 = df.query("task_id == 1029525734")
+    assert len(df2) == 1
+    assert df2["estimate"].loc[0] == 90
 
 
 def test_df_name_url_to_html() -> None:

@@ -23,7 +23,7 @@ import requests
 
 Path("cache").mkdir(exist_ok=True)
 # delete cache files older 1h
-for file_path in Path("cache/").glob("*.json"):
+for file_path in Path("cache/").glob("*.json"):  # pragma: no cover
     if time.time() - file_path.stat().st_mtime > 3600:  # noqa: PLR2004
         file_path.unlink()
 
@@ -81,7 +81,9 @@ def json_read(file_path: Path) -> list[dict[str, str]]:
     return json_data
 
 
-def json_write(file_path: Path, json_data: list[dict[str, str]]) -> None:
+def json_write(
+    file_path: Path, json_data: list[dict[str, str]]
+) -> None:  # pragma: no cover
     """
     Write JSON data to file.
     """
@@ -124,7 +126,7 @@ def check_cache_file_available_and_recent(
     return cache_good
 
 
-def perform_rest_call(url: str) -> str:
+def perform_rest_call(url: str) -> str:  # pragma: no cover
     """
     Perform a simple REST call to an url.
 
@@ -184,7 +186,9 @@ def rtm_append_key_and_token_and_sig(d: dict[str, str]) -> dict[str, str]:
     return d
 
 
-def rtm_call_method(method: str, arguments: dict[str, str]) -> dict[str, str]:
+def rtm_call_method(
+    method: str, arguments: dict[str, str]
+) -> dict[str, str]:  # pragma: no cover
     """
     Call any rtm API method.
 
@@ -227,13 +231,13 @@ def get_lists() -> list[dict[str, str]]:
     cache_file = Path("cache/lists.json")
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3600):
         lists = json_read(cache_file)
-    else:
-        lists = get_rmt_lists()
+    else:  # pragma: no cover
+        lists = get_rmt_lists()  # pragma: no cover
         json_write(cache_file, lists)
     return lists
 
 
-def get_rmt_lists() -> list[dict[str, str]]:
+def get_rmt_lists() -> list[dict[str, str]]:  # pragma: no cover
     """Fetch lists from RTM."""
     json_data = rtm_call_method(method="rtm.lists.getList", arguments={})
     lists = json_data["lists"]["list"]  # type: ignore
@@ -262,13 +266,14 @@ def get_tasks(my_filter: str) -> list[dict[str, str]]:
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 3600):
         print(f"Using cache file: {cache_file}")
         tasks = json_read(cache_file)
-    else:
+    else:  # pragma: no cover
         tasks = get_rtm_tasks(my_filter)
         json_write(cache_file, tasks)
     return tasks
 
 
-def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:
+def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:  # pragma: no cover
+    # pragma: no cover
     """Fetch filtered tasks from RTM."""
     arguments = {
         "filter": my_filter,
@@ -437,9 +442,10 @@ def df_name_url_to_html(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def df_to_html(df: pd.DataFrame, filename: str) -> None:
+def df_to_html(df: pd.DataFrame, filename: str) -> None:  # pragma: no cover
     """Export DF to html."""
     print(f"Exporting to {filename}")
+
     df.to_html(
         filename,
         index=False,

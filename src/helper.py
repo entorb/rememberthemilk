@@ -8,7 +8,6 @@ by Dr. Torben Menke https://entorb.net
 # API authentication documentation can be found at https://www.rememberthemilk.com/services/api/authentication.rtm
 # list of available API methods can be fount at https://www.rememberthemilk.com/services/api/methods.rtm
 
-
 import datetime as dt
 import hashlib
 import json
@@ -21,15 +20,19 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import requests
 
-Path("cache").mkdir(exist_ok=True)
+cache_dir = Path(__file__).parent / "cache"
+output_dir = Path(__file__).parent / "output"
+cache_dir.mkdir(exist_ok=True)
+output_dir.mkdir(exist_ok=True)
+
 # delete cache files older 1h
-for file_path in Path("cache/").glob("*.json"):  # pragma: no cover
+for file_path in cache_dir.glob("*.json"):  # pragma: no cover
     if time.time() - file_path.stat().st_mtime > 3600:  # noqa: PLR2004
         file_path.unlink()
 
 
 config = ConfigParser()
-config.read("rememberthemilk.ini")
+config.read(Path(__file__).parent / "rememberthemilk.ini")
 API_KEY = config.get("settings", "api_key")
 SHARED_SECRET = config.get("settings", "shared_secret")
 TOKEN = config.get("settings", "token")
@@ -135,7 +138,7 @@ def perform_rest_call(url: str) -> str:  # pragma: no cover
     Return the response text.
     """
     # rate limit: 1 request per second
-    for file_path in Path("cache/").glob("*.json"):
+    for file_path in cache_dir.glob("*.json"):
         if int(time.time()) == int(file_path.stat().st_mtime):
             print("sleeping for 1s to prevent rate limit")
             time.sleep(1)
@@ -228,7 +231,7 @@ def get_lists_dict() -> dict[int, str]:
 
 def get_lists() -> list[dict[str, str]]:
     """Fetch lists from RTM or cache if recent."""
-    cache_file = Path("cache/lists.json")
+    cache_file = cache_dir / "lists.json"
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3600):
         lists = json_read(cache_file)
     else:  # pragma: no cover
@@ -262,7 +265,7 @@ def get_tasks(my_filter: str) -> list[dict[str, str]]:
     # replace whitespaces by space
     my_filter = re.sub(r"\s+", " ", my_filter, flags=re.DOTALL)
     h = gen_md5_string(my_filter)
-    cache_file = Path(f"cache/tasks-{h}.json")
+    cache_file = cache_dir / f"tasks-{h}.json"
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 3600):
         print(f"Using cache file: {cache_file}")
         tasks = json_read(cache_file)
@@ -412,9 +415,9 @@ def task_add_fields(
         task["completed_week"] = None  # type: ignore
 
     # add url
-    task[
-        "url"
-    ] = f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+    task["url"] = (
+        f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+    )
 
     return task
 
@@ -442,13 +445,15 @@ def df_name_url_to_html(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def df_to_html(df: pd.DataFrame, filename: str) -> None:  # pragma: no cover
+def df_to_html(
+    df: pd.DataFrame, filename: str, *, index: bool = False
+) -> None:  # pragma: no cover
     """Export DF to html."""
     print(f"Exporting to {filename}")
 
     df.to_html(
-        filename,
-        index=False,
+        output_dir / filename,
+        index=index,
         render_links=False,
         escape=False,
         justify="center",

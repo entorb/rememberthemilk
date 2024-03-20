@@ -1,8 +1,9 @@
 """
 Test helper functions.
-"""  # noqa: INP001
+"""
 
-# ruff: noqa: S101 D103 PLR2004
+# ruff: noqa: S101 D103 PLR2004 INP001
+
 import datetime as dt
 import json
 import shutil
@@ -11,8 +12,9 @@ from pathlib import Path
 
 import pytest
 
-# Add parent directory to the Python path, so we can run this file directly
-sys.path.insert(0, Path(__file__).parent.parent.as_posix())
+# Add src directory to the Python path, so we can run this file directly
+sys.path.insert(0, (Path(__file__).parent.parent / "src").as_posix())
+
 
 from helper import (
     convert_task_fields,
@@ -30,6 +32,8 @@ from helper import (
     tasks_to_df,
 )
 
+cache_dir = Path(__file__).parent.parent / "src" / "cache"
+
 
 @pytest.fixture(autouse=True)
 def _setup_tests():  # noqa: ANN202
@@ -43,7 +47,7 @@ def _setup_tests():  # noqa: ANN202
 
 def cache_prepare_lists() -> None:
     cache_source = Path("tests/test_data/lists.json")
-    cache_target = Path("cache/lists.json")
+    cache_target = cache_dir / "lists.json"
     shutil.copyfile(cache_source, cache_target)
 
 
@@ -52,16 +56,16 @@ def cache_prepare_tasks() -> None:
     # l = get_tasks(my_filter=my_filter)
     h = gen_md5_string(my_filter)
     cache_source = Path(f"tests/test_data/tasks-{h}.json")
-    cache_target = Path(f"cache/tasks-{h}.json")
+    cache_target = cache_dir / f"tasks-{h}.json"
     shutil.copyfile(cache_source, cache_target)
 
 
 def cache_cleanup_test_data() -> None:
-    Path("cache/lists.json").unlink(missing_ok=True)
+    (cache_dir / "lists.json").unlink(missing_ok=True)
 
     my_filter = "list:unit-tests"
     h = gen_md5_string(my_filter)
-    cache_target = Path(f"cache/tasks-{h}.json")
+    cache_target = cache_dir / f"tasks-{h}.json"
     cache_target.unlink(missing_ok=True)
 
 

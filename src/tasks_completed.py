@@ -48,7 +48,7 @@ AND NOT list:Taschengeld""",
         df[cols],
         "out-completed.html",
     )
-    # df.to_excel("out-done-year.xlsx", index=False)
+    # df.to_excel(output_dir/"out-done-year.xlsx", index=False)
 
     df2 = df.groupby(["completed_week", "list"]).agg(
         count=("completed_week", "count"),
@@ -57,3 +57,5 @@ AND NOT list:Taschengeld""",
         sum_estimate=("estimate", "sum"),
     )
     print(df2)
+
+    df_to_html(df2, "out-completed-week.html", index=True)

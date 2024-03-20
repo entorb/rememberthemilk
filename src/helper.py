@@ -416,7 +416,7 @@ def task_add_fields(
 
     # add url
     task["url"] = (
-        f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'  # type: ignore
+        f"https://www.rememberthemilk.com/app/#list/{task['list_id']}/{task['task_id']}"  # type: ignore
     )
 
     return task

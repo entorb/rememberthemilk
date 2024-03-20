@@ -15,7 +15,7 @@ register for using the Remember The Milk API here: <https://www.rememberthemilk.
 * `api_key`
 * `shared_secret`
 
-store these info in [rememberthemilk.ini](rememberthemilk.ini) (see [rememberthemilk.ini.example](rememberthemilk.ini.example))
+store these info in [rememberthemilk.ini](src/rememberthemilk.ini) (see [rememberthemilk.ini.example](src/rememberthemilk.ini.example))
 
 ### Install required Python packages
 
@@ -25,13 +25,13 @@ pip install -r requirements.txt
 
 ### Obtain API token
 
-run [1auth.py](1auth.py) once and add the resulting `token` to [rememberthemilk.ini](rememberthemilk.ini)
+run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemilk.ini](src/rememberthemilk.ini)
 
 ## Playing with the API
 
 ### Analyze tasks completed
 
-[2tasks_completed.py](2tasks_completed.py)
+[tasks_completed.py](src/tasks_completed.py)
 
 * HTML table of completed tasks
 * appreciate what you have achieved
@@ -39,7 +39,7 @@ run [1auth.py](1auth.py) once and add the resulting `token` to [rememberthemilk.
 
 ### Analyze tasks overdue
 
-[3tasks_overdue.py](3tasks_overdue.py)
+[tasks_overdue.py](src/tasks_overdue.py)
 
 * HTML table of overdue tasks
 * ranked by product of overdue days x priority, to focus on most urgent ones

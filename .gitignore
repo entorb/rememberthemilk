@@ -1,8 +1,8 @@
 .vscode/
 __pycache__/
 cache/
+output/
 
-*.ini
 rememberthemilk.ini
-out-*
 .coverage
+.DS_Store

@@ -439,6 +439,9 @@ def df_name_url_to_html(df: pd.DataFrame) -> pd.DataFrame:
     name is html encoded first
     """
     # html encoding of column "name"
+    df["name"] = df["name"].str.replace("&", "&amp;")
+    df["name"] = df["name"].str.replace(">", "&gt;")
+    df["name"] = df["name"].str.replace("<", "&lt;")
     df["name"] = df["name"].str.encode("ascii", "xmlcharrefreplace").str.decode("utf-8")
     # add url link to name
     df["name"] = '<a href="' + df["url"] + '" target="_blank">' + df["name"] + "</a>"
@@ -451,10 +454,14 @@ def df_to_html(
     """Export DF to html."""
     print(f"Exporting to {filename}")
 
-    df.to_html(
-        output_dir / filename,
+    html = df.to_html(
         index=index,
         render_links=False,
         escape=False,
         justify="center",
     )
+
+    html = html.replace("<NA>", "")
+    html = "<!DOCTYPE html>\n" + html
+
+    (output_dir / filename).write_text(html)

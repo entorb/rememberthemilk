@@ -95,11 +95,17 @@ repos:
       - id: markdownlint
         args: ["--disable", "MD013"]
 
-  # # code spell check via cspell
+  # code spell check via cspell
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v8.7.0
     hooks:
       - id: cspell
+
+  # CRLF -> LF
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: remove-crlf
 
   # # Perl
   # - repo: https://github.com/henryykt/pre-commit-perl

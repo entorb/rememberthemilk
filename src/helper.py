@@ -13,8 +13,9 @@ import hashlib
 import json
 import re
 import time
-from configparser import ConfigParser
+import tomllib
 from pathlib import Path
+from typing import cast
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -31,12 +32,14 @@ for file_path in cache_dir.glob("*.json"):  # pragma: no cover
         file_path.unlink()
 
 
-config = ConfigParser()
-config.read(Path(__file__).parent / "rememberthemilk.ini")
-API_KEY = config.get("settings", "api_key")
-SHARED_SECRET = config.get("settings", "shared_secret")
-TOKEN = config.get("settings", "token")
-TZ = ZoneInfo(config.get("settings", "timezone"))
+with (Path(__file__).parent / "rememberthemilk.toml").open("rb") as f:
+    cfg = tomllib.load(f)["settings"]
+    cfg = cast(dict[str, str], cfg)
+
+API_KEY = cfg["api_key"]
+SHARED_SECRET = cfg["shared_secret"]
+TOKEN = cfg["token"]
+TZ = ZoneInfo(cfg["timezone"])
 DATE_TODAY = dt.datetime.now(tz=TZ).date()
 
 URL_RTM_BASE = "https://api.rememberthemilk.com/services/rest/"

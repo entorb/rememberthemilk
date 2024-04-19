@@ -44,5 +44,5 @@ jobs:
       - name: run pytest
         run: |
           pip install pytest
-          cp src/rememberthemilk.ini.example src/rememberthemilk.ini
+          cp src/rememberthemilk.toml.example src/rememberthemilk.toml
           pytest

@@ -3,6 +3,6 @@ __pycache__/
 cache/
 output/
 
-rememberthemilk.ini
+rememberthemilk.toml
 .coverage
 .DS_Store

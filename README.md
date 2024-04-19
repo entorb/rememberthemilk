@@ -23,6 +23,12 @@ store these info in [rememberthemilk.ini](src/rememberthemilk.ini) (see [remembe
 pip install -r requirements.txt
 ```
 
+optionally:
+
+```sh
+pip install ruff pre-commit
+```
+
 ### Obtain API token
 
 run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemilk.ini](src/rememberthemilk.ini)

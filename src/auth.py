@@ -47,7 +47,7 @@ def rtm_auth_get_token(frob: str) -> str:
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
     d_json = json_parse_response(response_text)
-    return d_json["auth"]["token"]
+    return d_json["auth"]["token"]  # type: ignore
 
 
 def auth() -> None:

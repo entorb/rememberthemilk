@@ -14,15 +14,19 @@ from helper import (
     get_tasks_as_df,
 )
 
+DATE_START = dt.date(DATE_TODAY.year, 1, 1)
+FILTER_COMPLETED = f"""
+CompletedAfter:{DATE_START.strftime("%d/%m/%Y")}
+AND NOT list:Taschengeld"""
+
+
 if __name__ == "__main__":
     lists_dict = get_lists_dict()
 
     print("# RTM tasks completed this year")
-    date_start = dt.date(DATE_TODAY.year, 1, 1)
+
     df = get_tasks_as_df(
-        my_filter=f"""
-CompletedAfter:{date_start.strftime("%d/%m/%Y")}
-AND NOT list:Taschengeld""",
+        my_filter=FILTER_COMPLETED,
         lists_dict=lists_dict,
     )
     df = df.sort_values(

@@ -21,13 +21,13 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import requests
 
-cache_dir = Path(__file__).parent / "cache"
-output_dir = Path(__file__).parent / "output"
-cache_dir.mkdir(exist_ok=True)
-output_dir.mkdir(exist_ok=True)
+CACHE_DIR = Path(__file__).parent / "cache"
+OUTPUT_DIR = Path(__file__).parent / "output"
+CACHE_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 # delete cache files older 1h
-for file_path in cache_dir.glob("*.json"):  # pragma: no cover
+for file_path in CACHE_DIR.glob("*.json"):  # pragma: no cover
     if time.time() - file_path.stat().st_mtime > 3600:  # noqa: PLR2004
         file_path.unlink()
 
@@ -141,7 +141,7 @@ def perform_rest_call(url: str) -> str:  # pragma: no cover
     Return the response text.
     """
     # rate limit: 1 request per second
-    for file_path in cache_dir.glob("*.json"):
+    for file_path in CACHE_DIR.glob("*.json"):
         if int(time.time()) == int(file_path.stat().st_mtime):
             print("sleeping for 1s to prevent rate limit")
             time.sleep(1)
@@ -234,7 +234,7 @@ def get_lists_dict() -> dict[int, str]:
 
 def get_lists() -> list[dict[str, str]]:
     """Fetch lists from RTM or cache if recent."""
-    cache_file = cache_dir / "lists.json"
+    cache_file = CACHE_DIR / "lists.json"
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3600):
         lists = json_read(cache_file)
     else:  # pragma: no cover
@@ -268,7 +268,7 @@ def get_tasks(my_filter: str) -> list[dict[str, str]]:
     # replace whitespaces by space
     my_filter = re.sub(r"\s+", " ", my_filter, flags=re.DOTALL)
     h = gen_md5_string(my_filter)
-    cache_file = cache_dir / f"tasks-{h}.json"
+    cache_file = CACHE_DIR / f"tasks-{h}.json"
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3 * 3600):
         print(f"Using cache file: {cache_file}")
         tasks = json_read(cache_file)
@@ -467,4 +467,4 @@ def df_to_html(
     html = html.replace("<NA>", "")
     html = "<!DOCTYPE html>\n" + html
 
-    (output_dir / filename).write_text(html)
+    (OUTPUT_DIR / filename).write_text(html)

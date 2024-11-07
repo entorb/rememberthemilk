@@ -11,17 +11,19 @@ from helper import (
     get_tasks_as_df,
 )
 
-if __name__ == "__main__":
-    lists_dict = get_lists_dict()
-
-    print("# RTM tasks overdue")
-    my_filter = """
+FILTER_OVERDUE = """
 dueBefore:Today
 AND NOT status:completed
 AND NOT list:Taschengeld
 """
+
+
+if __name__ == "__main__":
+    lists_dict = get_lists_dict()
+    print("# RTM tasks overdue")
+
     df = get_tasks_as_df(
-        my_filter=my_filter,
+        my_filter=FILTER_OVERDUE,
         lists_dict=lists_dict,
     )
     df = df.sort_values(by=["overdue_prio"], ascending=False)

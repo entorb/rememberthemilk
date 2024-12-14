@@ -34,7 +34,7 @@ for file_path in CACHE_DIR.glob("*.json"):  # pragma: no cover
 
 with (Path(__file__).parent / "rememberthemilk.toml").open("rb") as f:
     cfg = tomllib.load(f)["settings"]
-    cfg = cast(dict[str, str], cfg)
+    cfg = cast("dict[str, str]", cfg)
 
 API_KEY = cfg["api_key"]
 SHARED_SECRET = cfg["shared_secret"]
@@ -60,7 +60,7 @@ def dict_to_url_param(d: dict[str, str]) -> str:
     return "&".join("=".join(tup) for tup in d.items())
 
 
-def json_parse_response(response_text: str) -> dict[str, str]:
+def json_parse_response(response_text: str) -> dict[str, str | dict[str, str]]:
     """
     Convert response_text as JSON.
 
@@ -68,10 +68,10 @@ def json_parse_response(response_text: str) -> dict[str, str]:
     """
     try:
         d_json = json.loads(response_text)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError:  # pragma: no cover
         msg = f"Invalid JSON:\n{response_text}"
         raise ValueError(msg) from None
-    if d_json["rsp"]["stat"] != "ok":
+    if d_json["rsp"]["stat"] != "ok":  # pragma: no cover
         msg = f"Status not ok:\n{d_json}"
         raise ValueError(msg) from None
     del d_json["rsp"]["stat"]
@@ -192,9 +192,7 @@ def rtm_append_key_and_token_and_sig(d: dict[str, str]) -> dict[str, str]:
     return d
 
 
-def rtm_call_method(
-    method: str, arguments: dict[str, str]
-) -> dict[str, str]:  # pragma: no cover
+def rtm_call_method(method: str, arguments: dict[str, str]) -> dict:  # pragma: no cover
     """
     Call any rtm API method.
 
@@ -215,7 +213,7 @@ def rtm_call_method(
 
 def get_lists_dict() -> dict[int, str]:
     """
-    Return a dict of list_id -> list_name.
+    Return a dict of id -> name.
     """
     # print("\nRTM Lists")
     rtm_lists = get_lists()
@@ -238,7 +236,7 @@ def get_lists() -> list[dict[str, str]]:
     if check_cache_file_available_and_recent(file_path=cache_file, max_age=3600):
         lists = json_read(cache_file)
     else:  # pragma: no cover
-        lists = get_rmt_lists()  # pragma: no cover
+        lists = get_rmt_lists()
         json_write(cache_file, lists)
     return lists
 
@@ -246,9 +244,9 @@ def get_lists() -> list[dict[str, str]]:
 def get_rmt_lists() -> list[dict[str, str]]:  # pragma: no cover
     """Fetch lists from RTM."""
     json_data = rtm_call_method(method="rtm.lists.getList", arguments={})
-    lists = json_data["lists"]["list"]  # type: ignore
-    lists = sorted(lists, key=lambda x: (x["smart"], x["name"]), reverse=False)  # type: ignore
-    return lists  # type: ignore
+    lists = json_data["lists"]["list"]
+    lists = sorted(lists, key=lambda x: (x["smart"], x["name"]), reverse=False)
+    return lists
 
 
 # helper functions 5: tasks
@@ -263,7 +261,7 @@ def get_tasks_as_df(my_filter: str, lists_dict: dict[int, str]) -> pd.DataFrame:
     return df
 
 
-def get_tasks(my_filter: str) -> list[dict[str, str]]:
+def get_tasks(my_filter: str) -> list[dict]:
     """Fetch filtered tasks from RTM or cache if recent."""
     # replace whitespaces by space
     my_filter = re.sub(r"\s+", " ", my_filter, flags=re.DOTALL)
@@ -278,7 +276,7 @@ def get_tasks(my_filter: str) -> list[dict[str, str]]:
     return tasks
 
 
-def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:  # pragma: no cover
+def get_rtm_tasks(my_filter: str) -> list[dict]:  # pragma: no cover
     # pragma: no cover
     """Fetch filtered tasks from RTM."""
     arguments = {
@@ -286,13 +284,11 @@ def get_rtm_tasks(my_filter: str) -> list[dict[str, str]]:  # pragma: no cover
         # "list_id": "45663479",  # filter by list ID
     }
     json_data = rtm_call_method(method="rtm.tasks.getList", arguments=arguments)
-    tasks = json_data["tasks"]["list"]  # type: ignore
-    return tasks  # type: ignore
+    tasks = json_data["tasks"]["list"]
+    return tasks
 
 
-def flatten_tasks(
-    rtm_tasks: list[dict[str, str]], lists_dict: dict[int, str]
-) -> list[dict[str, str]]:
+def flatten_tasks(rtm_tasks: list[dict], lists_dict: dict[int, str]) -> list[dict]:
     """
     Flatten tasks.
 
@@ -303,19 +299,19 @@ def flatten_tasks(
         # {'id': '45663480', 'taskseries': [...]}
         for taskseries in tasks_per_list["taskseries"]:
             # {'id': '524381810', 'created': '2023-12-03T20:04:47Z', 'modified': '2024-02-12T14:19:39Z', 'name': 'Name of my Taskseries', 'source': 'iphone-native', 'url': '', 'location_id': '', 'rrule': {'every': '0', '$t': 'FREQ=MONTHLY;INTERVAL=1;WKST=SU'}, 'tags': [], 'participants': [], 'notes': [], 'task': [{...}]}  # noqa: E501
-            for task in taskseries["task"]:  # type: ignore
+            for task in taskseries["task"]:
                 # {'id': '1008061846', 'due': '2024-01-02T23:00:00Z', 'has_due_time': '0', 'added': '2023-12-03T20:04:47Z', 'completed': '2024-02-12T14:19:36Z', 'deleted': '', 'priority': '3', 'postponed': '0', 'estimate': 'PT15M'}  # noqa: E501
                 d = {
-                    "list_id": tasks_per_list["id"],  # type: ignore
-                    "task_id": task["id"],  # type: ignore
-                    "list": lists_dict[int(tasks_per_list["id"])],  # type: ignore
-                    "name": taskseries["name"],  # type: ignore
-                    "due": task["due"],  # type: ignore
-                    "completed": task["completed"],  # type: ignore
-                    "prio": task["priority"],  # type: ignore
-                    "estimate": task["estimate"],  # type: ignore
-                    "postponed": task["postponed"],  # type: ignore
-                    "deleted": task["deleted"],  # type: ignore
+                    "list_id": tasks_per_list["id"],
+                    "task_id": task["id"],
+                    "list": lists_dict[int(tasks_per_list["id"])],
+                    "name": taskseries["name"],
+                    "due": task["due"],
+                    "completed": task["completed"],
+                    "prio": task["priority"],
+                    "estimate": task["estimate"],
+                    "postponed": task["postponed"],
+                    "deleted": task["deleted"],
                 }
                 list_flat.append(d)
 
@@ -323,28 +319,28 @@ def flatten_tasks(
 
 
 def convert_task_fields(
-    list_flat: list[dict[str, str]],
-) -> list[dict[str, str | int]]:
+    list_flat: list[dict],
+) -> list[dict[str, str | int | dt.date]]:
     """
     Convert some fields to int or date."""
-    list_flat2: list[dict[str, str | int]] = []
+    list_flat2: list[dict[str, str | int | dt.date]] = []
     # {'list': 'PC', 'name': 'Name of my task', 'due': '2023-10-30T23:00:00Z', 'completed': '2023-12-31T09:53:50Z', 'priority': '2', 'estimate': 'PT30M', 'postponed': '0', 'deleted': ''}  # noqa: E501
     for task in list_flat:
         # IDs to int
-        task["task_id"] = int(task["task_id"])  # type: ignore
-        task["list_id"] = int(task["list_id"])  # type: ignore
+        task["task_id"] = int(task["task_id"])
+        task["list_id"] = int(task["list_id"])
 
         # postponed count to int
-        task["postponed"] = int(task["postponed"])  # type: ignore
+        task["postponed"] = int(task["postponed"])
 
         # estimate to minutes
-        task["estimate"] = task_est_to_minutes(est=task["estimate"])  # type: ignore
+        task["estimate"] = task_est_to_minutes(est=task["estimate"])
 
         # priority to int
         # N(=no)->1, 3->1, 2->2, 1 -> 4
         if task["prio"] in PRIORITY_MAP:
-            task["prio"] = PRIORITY_MAP[task["prio"]]  # type: ignore
-        else:
+            task["prio"] = PRIORITY_MAP[task["prio"]]
+        else:  # pragma: no cover
             msg = "Unknown priority:" + task["prio"]
             raise ValueError(msg) from None
 
@@ -354,13 +350,13 @@ def convert_task_fields(
             if len(task[field]) > 1:
                 my_dt = dt.datetime.fromisoformat(task[field].replace("Z", " +00:00"))
                 # convert to local time and than date only
-                task[field] = my_dt.astimezone(tz=TZ).date()  # type: ignore
+                task[field] = my_dt.astimezone(tz=TZ).date()
             else:
-                task[field] = None  # type: ignore
+                task[field] = None
 
-        task = task_add_fields(task)  # type: ignore  # noqa: PLW2901
+        task = task_add_fields(task)  # noqa: PLW2901
 
-        list_flat2.append(task)  # type: ignore
+        list_flat2.append(task)
 
     return list_flat2
 
@@ -368,7 +364,7 @@ def convert_task_fields(
 def task_est_to_minutes(est: str) -> int | None:
     """Convert a time estimate string to minutes."""
     if len(est) == 0:
-        return None  # type: ignore
+        return None
 
     task_time_min = 0
     if est.startswith("PT") and ("H" in est or "M" in est):
@@ -379,8 +375,7 @@ def task_est_to_minutes(est: str) -> int | None:
             est = s[1]
         if est.endswith("M"):
             task_time_min += int(est[:-1])
-        est = task_time_min  # type: ignore
-    else:
+    else:  # pragma: no cover
         msg = "Unknown estimate:" + est
         raise ValueError(msg) from None
 
@@ -388,7 +383,7 @@ def task_est_to_minutes(est: str) -> int | None:
 
 
 def task_add_fields(
-    task: dict[str, str | int | dt.date],
+    task: dict,
 ) -> dict[str, str | int | dt.date]:
     """
     Add some fields.
@@ -396,26 +391,26 @@ def task_add_fields(
     Add overdue, overdue_prio, completed_week, url
     """
     # add overdue
-    if task["due"] and task["completed"] and task["due"] <= task["completed"]:  # type: ignore
-        task["overdue"] = (task["completed"] - task["due"]).days  # type: ignore
-    elif task["due"] and not task["completed"] and task["due"] < DATE_TODAY:  # type: ignore
-        task["overdue"] = (DATE_TODAY - task["due"]).days  # type: ignore
+    if task["due"] and task["completed"] and task["due"] <= task["completed"]:
+        task["overdue"] = (task["completed"] - task["due"]).days
+    elif task["due"] and not task["completed"] and task["due"] < DATE_TODAY:
+        task["overdue"] = (DATE_TODAY - task["due"]).days
     else:
-        task["overdue"] = None  # type: ignore
+        task["overdue"] = None
 
     # overdue prio
     if task["overdue"]:
-        task["overdue_prio"] = task["prio"] * task["overdue"]  # type: ignore
+        task["overdue_prio"] = task["prio"] * task["overdue"]
     else:
-        task["overdue_prio"] = None  # type: ignore
+        task["overdue_prio"] = None
 
     # add completed week
     if task["completed"]:
-        year, week, _ = task["completed"].isocalendar()  # type: ignore
-        task["completed_week"] = dt.date.fromisocalendar(year, week, 1)  # type: ignore
+        year, week, _ = task["completed"].isocalendar()
+        task["completed_week"] = dt.date.fromisocalendar(year, week, 1)
         del week, year
     else:
-        task["completed_week"] = None  # type: ignore
+        task["completed_week"] = None
 
     # add url
     task["url"] = (
@@ -425,7 +420,7 @@ def task_add_fields(
     return task
 
 
-def tasks_to_df(list_flat2: list[dict[str, str | int]]) -> pd.DataFrame:
+def tasks_to_df(list_flat2: list[dict]) -> pd.DataFrame:
     """Convert tasks from list of dicts to Pandas DataFrame."""
     df = pd.DataFrame.from_records(list_flat2)
     df["overdue"] = df["overdue"].astype("Int64")

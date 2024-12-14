@@ -4,6 +4,8 @@ Authentication for RememberTheMilk API.
 Only needed once.
 """
 
+# ruff: noqa: S101
+
 from helper import (
     URL_RTM_BASE,
     dict_to_url_param,
@@ -23,7 +25,9 @@ def rtm_get_frob() -> str:
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
     d_json = json_parse_response(response_text)
-    return d_json["frob"]
+    frob = d_json["frob"]
+    assert type(frob) is str, type(frob)
+    return frob
 
 
 def rtm_gen_auth_url(frob: str) -> str:
@@ -47,7 +51,9 @@ def rtm_auth_get_token(frob: str) -> str:
     url = f"{URL_RTM_BASE}?{param_str}"
     response_text = perform_rest_call(url)
     d_json = json_parse_response(response_text)
-    return d_json["auth"]["token"]  # type: ignore
+    token = d_json["auth"]["token"]  # type: ignore
+    assert type(token) is str
+    return token
 
 
 def auth() -> None:

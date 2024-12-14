@@ -23,10 +23,21 @@ store these info in [rememberthemilk.ini](src/rememberthemilk.ini) (see [remembe
 pip install -r requirements.txt
 ```
 
-optionally:
+#### Dev Tools
+
+optionally: ruff and pre-commit
 
 ```sh
 pip install ruff pre-commit
+```
+
+optionally: pytest coverage report
+
+```sh
+pip install pytest-cov
+pytest --cov
+# or
+pytest --cov --cov-report=html:coverage_report
 ```
 
 ### Obtain API token
@@ -50,6 +61,16 @@ run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemil
 * HTML table of overdue tasks
 * ranked by product of overdue days x priority, to focus on most urgent ones
 * display time estimation in minutes to motivate you for solving the minor ones right away
+
+## Streamlit for interactive data analysis
+
+```sh
+pip install streamlit watchdog
+```
+
+```sh
+streamlit run src/app.py
+```
 
 ## My RTM lifehacks
 

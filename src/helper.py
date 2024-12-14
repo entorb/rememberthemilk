@@ -1,7 +1,8 @@
+# by Dr. Torben Menke https://entorb.net
+# https://github.com/entorb/rememberthemilk
+
 """
 RTM helper functions.
-
-by Dr. Torben Menke https://entorb.net
 """
 
 # access to https://www.rememberthemilk.com tasks via their API
@@ -49,6 +50,11 @@ PRIORITY_MAP = {"N": 1, "3": 1, "2": 2, "1": 4}
 #
 # helper functions 1: converters
 #
+
+
+def delete_cache() -> None:  # noqa: D103
+    for file_path in CACHE_DIR.glob("*.json"):  # pragma: no cover
+        file_path.unlink()
 
 
 def dict_to_url_param(d: dict[str, str]) -> str:
@@ -414,7 +420,7 @@ def task_add_fields(
 
     # add url
     task["url"] = (
-        f'https://www.rememberthemilk.com/app/#list/{task["list_id"]}/{task["task_id"]}'
+        f"https://www.rememberthemilk.com/app/#list/{task['list_id']}/{task['task_id']}"
     )
 
     return task

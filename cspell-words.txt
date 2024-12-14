@@ -2,13 +2,17 @@
 abcbazfegbaryxzfoo
 astype
 autouse
+DataFrame
 frob
 lifehacks
 Menke
 noqa
 prio
+pytest
 rememberthemilk
 rrule
+selectbox
+Streamlit
 Taschengeld
 taskseries
 todos

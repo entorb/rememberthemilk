@@ -14,7 +14,7 @@ from helper import (
     get_tasks_as_df,
 )
 
-DATE_START = dt.date(DATE_TODAY.year, 1, 1)
+DATE_START = DATE_TODAY - dt.timedelta(days=365)
 FILTER_COMPLETED = f"""
 CompletedAfter:{DATE_START.strftime("%d/%m/%Y")}
 AND NOT list:Taschengeld"""

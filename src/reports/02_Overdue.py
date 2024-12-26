@@ -1,17 +1,17 @@
-"""Completed Tasks."""  # noqa: INP001
+"""Completed Tasks."""
 
 import altair as alt
 import streamlit as st
 
 from tasks_overdue import get_tasks_overdue, group_by_list
 
-st.set_page_config(page_title="RTM Overdue", page_icon=None, layout="wide")
 st.title("Overdue")
 
 df = get_tasks_overdue().sort_values(by=["overdue"], ascending=[True])
 lists = sorted(set(df["list"].to_list()))
 
-sel_list = st.selectbox(label="List", index=None, options=lists)
+col1, _ = st.columns((1, 5))
+sel_list = col1.selectbox(label="List", index=None, options=lists)
 
 st.dataframe(
     df.query(f"list == '{sel_list}'") if sel_list else df,
@@ -24,7 +24,8 @@ df = group_by_list(df)
 df = df.reset_index()
 
 
-sel_list = st.selectbox(
+col1, _ = st.columns((1, 5))
+sel_list = col1.selectbox(
     label="Parameter",
     options=("count", "sum_prio", "sum_overdue_prio", "sum_estimate"),
 )

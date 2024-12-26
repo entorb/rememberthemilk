@@ -1,11 +1,10 @@
-"""Completed Tasks."""  # noqa: INP001
+"""Completed Tasks."""
 
 import altair as alt
 import streamlit as st
 
 from tasks_completed import completed_week, get_tasks_completed
 
-st.set_page_config(page_title="RTM Completed", page_icon=None, layout="wide")
 st.title("Completed")
 
 df = get_tasks_completed()

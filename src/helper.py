@@ -35,7 +35,7 @@ for file_path in CACHE_DIR.glob("*.json"):  # pragma: no cover
 
 with (Path(__file__).parent / "rememberthemilk.toml").open("rb") as f:
     cfg = tomllib.load(f)["settings"]
-    cfg = cast(dict[str, str], cfg)
+    cfg = cast("dict[str, str]", cfg)
 
 API_KEY = cfg["api_key"]
 SHARED_SECRET = cfg["shared_secret"]

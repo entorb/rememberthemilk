@@ -1,11 +1,7 @@
+"""RTM tasks overdue."""
+
 # by Dr. Torben Menke https://entorb.net
 # https://github.com/entorb/rememberthemilk
-
-"""
-RTM tasks overdue.
-
-by Dr. Torben Menke https://entorb.net
-"""
 
 from pandas import DataFrame
 

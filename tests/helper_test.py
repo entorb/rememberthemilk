@@ -15,8 +15,10 @@ import pytest
 # Add src directory to the Python path, so we can run this file directly
 sys.path.insert(0, (Path(__file__).parent.parent / "src").as_posix())
 
+LIST_UNIT_TEST = "list:unit-tests"
 
-from helper import (
+
+from helper import (  # noqa: E402
     convert_task_fields,
     df_name_url_to_html,
     dict_to_url_param,
@@ -52,8 +54,7 @@ def cache_prepare_lists() -> None:
 
 
 def cache_prepare_tasks() -> None:
-    my_filter = "list:unit-tests"
-    # l = get_tasks(my_filter=my_filter)
+    my_filter = LIST_UNIT_TEST
     h = gen_md5_string(my_filter)
     cache_source = Path(f"tests/test_data/tasks-{h}.json")
     cache_target = cache_dir / f"tasks-{h}.json"
@@ -63,7 +64,7 @@ def cache_prepare_tasks() -> None:
 def cache_cleanup_test_data() -> None:
     (cache_dir / "lists.json").unlink(missing_ok=True)
 
-    my_filter = "list:unit-tests"
+    my_filter = LIST_UNIT_TEST
     h = gen_md5_string(my_filter)
     cache_target = cache_dir / f"tasks-{h}.json"
     cache_target.unlink(missing_ok=True)
@@ -140,7 +141,7 @@ def test_get_lists_dict() -> None:
 
 
 def test_flatten_tasks() -> None:
-    my_filter = "list:unit-tests"
+    my_filter = LIST_UNIT_TEST
     tasks = get_tasks(my_filter)
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
@@ -170,7 +171,7 @@ def test_task_est_to_minutes(test_input: str, expected: int) -> None:
 
 
 def test_convert_task_fields() -> None:
-    my_filter = "list:unit-tests"
+    my_filter = LIST_UNIT_TEST
     tasks = get_tasks(my_filter)
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
@@ -193,7 +194,7 @@ def test_convert_task_fields() -> None:
 
 
 def test_get_tasks_as_df() -> None:
-    my_filter = "list:unit-tests"
+    my_filter = LIST_UNIT_TEST
     lists_dict = get_lists_dict()
     df = get_tasks_as_df(my_filter=my_filter, lists_dict=lists_dict)
     assert len(df.index) == 6
@@ -203,7 +204,7 @@ def test_get_tasks_as_df() -> None:
 
 
 def test_df_name_url_to_html() -> None:
-    my_filter = "list:unit-tests"
+    my_filter = LIST_UNIT_TEST
     tasks = get_tasks(my_filter)
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)

@@ -1,11 +1,7 @@
+"""RTM tasks completed this year."""
+
 # by Dr. Torben Menke https://entorb.net
 # https://github.com/entorb/rememberthemilk
-
-"""
-RTM tasks completed this year.
-
-by Dr. Torben Menke https://entorb.net
-"""
 
 import datetime as dt
 

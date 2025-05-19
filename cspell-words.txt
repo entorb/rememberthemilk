@@ -12,6 +12,8 @@ pytest
 rememberthemilk
 rrule
 selectbox
+SonarCloud
+SonarQube
 Streamlit
 Taschengeld
 taskseries

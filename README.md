@@ -121,3 +121,7 @@ see <https://www.rememberthemilk.com/help/?ctx=basics.search.advanced>
 * once a month I check the medium prio goals
 * once a quarter I check the low prio goals
 * to work towards a goal, I create small repetitive tasks (using after, not every), that use the url field to link to the goal.
+
+## SonarQube Code Analysis
+
+At [sonarcloud.io](https://sonarcloud.io/summary/overall?id=entorb_rememberthemilk&branch=main)

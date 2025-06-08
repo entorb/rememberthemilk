@@ -1,0 +1,23 @@
+# CSpell Custom Dictionary Words
+abcbazfegbaryxzfoo
+astype
+autouse
+DataFrame
+frob
+lifehacks
+Menke
+noqa
+prio
+pytest
+rememberthemilk
+rrule
+selectbox
+SonarCloud
+SonarQube
+Streamlit
+Taschengeld
+taskseries
+todos
+Torben
+WKST
+xmlcharrefreplace

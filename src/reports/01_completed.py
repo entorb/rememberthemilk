@@ -1,13 +1,21 @@
 """Completed Tasks."""
 
 import altair as alt
+import pandas as pd
 import streamlit as st
 
 from tasks_completed import completed_week, get_tasks_completed
 
 st.title("Completed")
 
-df = get_tasks_completed()
+
+@st.cache_data(ttl="1h")
+def get_df() -> pd.DataFrame:
+    """Cache API call."""
+    return get_tasks_completed()
+
+
+df = get_df()
 st.dataframe(
     df,
     hide_index=True,

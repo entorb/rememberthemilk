@@ -66,14 +66,14 @@ def dict_to_url_param(d: dict[str, str]) -> str:
     return "&".join("=".join(tup) for tup in d.items())
 
 
-def json_parse_response(response_text: str) -> dict[str, str | dict[str, str]]:
+def json_parse_response(response_text: str) -> dict:
     """
     Convert response_text as JSON.
 
     Ensures that the response status is ok and drops that
     """
     try:
-        d_json = json.loads(response_text)
+        d_json: dict = json.loads(response_text)
     except json.JSONDecodeError:  # pragma: no cover
         msg = f"Invalid JSON:\n{response_text}"
         raise ValueError(msg) from None
@@ -223,7 +223,7 @@ def get_lists_dict() -> dict[int, str]:
     """
     # print("\nRTM Lists")
     rtm_lists = get_lists()
-    lists_dict = {}
+    lists_dict: dict[int, str] = {}
     for el in rtm_lists:
         # {'id': '25825681', 'name': 'Name of my List', 'deleted': '0', 'locked': '0', 'archived': '0', 'position': '0', 'smart': '0', 'sort_order': '0'}  # noqa: E501
         lists_dict[int(el["id"])] = el["name"]
@@ -300,7 +300,7 @@ def flatten_tasks(rtm_tasks: list[dict], lists_dict: dict[int, str]) -> list[dic
 
     returns list of dicts
     """
-    list_flat = []
+    list_flat: list[dict] = []
     for tasks_per_list in rtm_tasks:
         # {'id': '45663480', 'taskseries': [...]}
         for taskseries in tasks_per_list["taskseries"]:

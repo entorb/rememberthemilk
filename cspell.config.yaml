@@ -15,5 +15,5 @@ ignorePaths:
   - "build"
   - "node_modules"
   - "requirements.txt"
-  - "src/cache"
-  - "src/output"
+  - "cache"
+  - "output"

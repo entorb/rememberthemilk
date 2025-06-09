@@ -5,10 +5,11 @@
 
 import datetime as dt
 
-from pandas import DataFrame
+import pandas as pd
 
 from helper import (
     DATE_TODAY,
+    OUTPUT_DIR,
     df_name_url_to_html,
     df_to_html,
     get_lists_dict,
@@ -19,16 +20,19 @@ DATE_START = DATE_TODAY - dt.timedelta(days=365)
 FILTER_COMPLETED = f"""
 CompletedAfter:{DATE_START.strftime("%d/%m/%Y")}
 AND NOT list:Taschengeld"""
+FILE_EXPORT = OUTPUT_DIR / "tasks_completed.csv"
 
 
-def get_tasks_completed() -> DataFrame:  # noqa: D103
+def get_tasks_completed() -> pd.DataFrame:  # noqa: D103
     lists_dict = get_lists_dict()
+
     df = get_tasks_as_df(
         my_filter=FILTER_COMPLETED,
         lists_dict=lists_dict,
     )
     df = df.sort_values(
-        by=["completed", "prio", "name"], ascending=[False, False, True]
+        by=["completed", "completed_time", "prio", "name"],
+        ascending=[False, False, False, True],
     )
     df = df.reset_index()
 
@@ -36,6 +40,7 @@ def get_tasks_completed() -> DataFrame:  # noqa: D103
         "name",
         "list",
         "completed",
+        "completed_time",
         "completed_week",
         # "due",
         "overdue",
@@ -50,7 +55,7 @@ def get_tasks_completed() -> DataFrame:  # noqa: D103
     return df
 
 
-def completed_week(df: DataFrame) -> DataFrame:  # noqa: D103
+def completed_week(df: pd.DataFrame) -> pd.DataFrame:  # noqa: D103
     df = (
         df.groupby(["completed_week", "list"])
         .agg(
@@ -66,6 +71,10 @@ def completed_week(df: DataFrame) -> DataFrame:  # noqa: D103
 
 if __name__ == "__main__":
     df = get_tasks_completed()
+    df["name"] = df["name"].str.replace("\t", " ")
+    df.sort_values(["completed", "completed_time", "name"]).to_csv(
+        FILE_EXPORT, index=False, sep="\t", lineterminator="\n"
+    )
 
     print("# RTM tasks completed this year")
 

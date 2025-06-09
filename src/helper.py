@@ -22,8 +22,8 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import requests
 
-CACHE_DIR = Path(__file__).parent / "cache"
-OUTPUT_DIR = Path(__file__).parent / "output"
+CACHE_DIR = Path(__file__).parent.parent / "cache"
+OUTPUT_DIR = Path(__file__).parent.parent / "output"
 CACHE_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -349,6 +349,14 @@ def convert_task_fields(
         else:  # pragma: no cover
             msg = "Unknown priority:" + task["prio"]
             raise ValueError(msg) from None
+
+        if len(task["completed"]) > 1:
+            my_dt = dt.datetime.fromisoformat(
+                task["completed"].replace("Z", " +00:00")
+            ).astimezone(tz=TZ)
+            task["completed_time"] = my_dt.strftime("%H:%M")
+        else:
+            task["completed_time"] = ""
 
         # due and completed to date, dropping timezone
         # "due": "2023-10-30T23:00:00Z"

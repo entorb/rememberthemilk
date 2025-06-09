@@ -34,7 +34,7 @@ from helper import (  # noqa: E402
     tasks_to_df,
 )
 
-cache_dir = Path(__file__).parent.parent / "src" / "cache"
+CACHE_DIR = Path(__file__).parent.parent / "cache"
 
 
 @pytest.fixture(autouse=True)
@@ -49,7 +49,7 @@ def _setup_tests():  # noqa: ANN202
 
 def cache_prepare_lists() -> None:
     cache_source = Path("tests/test_data/lists.json")
-    cache_target = cache_dir / "lists.json"
+    cache_target = CACHE_DIR / "lists.json"
     shutil.copyfile(cache_source, cache_target)
 
 
@@ -57,16 +57,16 @@ def cache_prepare_tasks() -> None:
     my_filter = LIST_UNIT_TEST
     h = gen_md5_string(my_filter)
     cache_source = Path(f"tests/test_data/tasks-{h}.json")
-    cache_target = cache_dir / f"tasks-{h}.json"
+    cache_target = CACHE_DIR / f"tasks-{h}.json"
     shutil.copyfile(cache_source, cache_target)
 
 
 def cache_cleanup_test_data() -> None:
-    (cache_dir / "lists.json").unlink(missing_ok=True)
+    (CACHE_DIR / "lists.json").unlink(missing_ok=True)
 
     my_filter = LIST_UNIT_TEST
     h = gen_md5_string(my_filter)
-    cache_target = cache_dir / f"tasks-{h}.json"
+    cache_target = CACHE_DIR / f"tasks-{h}.json"
     cache_target.unlink(missing_ok=True)
 
 

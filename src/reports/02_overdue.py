@@ -1,13 +1,21 @@
 """Completed Tasks."""
 
 import altair as alt
+import pandas as pd
 import streamlit as st
 
 from tasks_overdue import get_tasks_overdue, group_by_list
 
 st.title("Overdue")
 
-df = get_tasks_overdue().sort_values(by=["overdue"], ascending=[True])
+
+@st.cache_data(ttl="1h")
+def get_df() -> pd.DataFrame:
+    """Cache API call."""
+    return get_tasks_overdue().sort_values(by=["overdue"], ascending=[True])
+
+
+df = get_df()
 lists = sorted(set(df["list"].to_list()))
 
 col1, _ = st.columns((1, 5))

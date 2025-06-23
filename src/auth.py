@@ -4,8 +4,6 @@ Authentication for RememberTheMilk API.
 Only needed once.
 """
 
-# ruff: noqa: S101
-
 from helper import (
     URL_RTM_BASE,
     dict_to_url_param,

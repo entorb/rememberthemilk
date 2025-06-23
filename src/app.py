@@ -16,7 +16,7 @@ def create_navigation_menu() -> None:
     lst: list[StreamlitPage] = []
     for p in sorted(Path("src/reports").glob("*.py")):
         f = p.stem
-        t = f[3:].title()
+        t = f[4:].title()
         lst.append(st.Page(page=f"reports/{f}.py", title=t))
     pg = st.navigation(lst)
     pg.run()

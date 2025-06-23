@@ -2,7 +2,7 @@
 Test helper functions.
 """
 
-# ruff: noqa: S101 D103 PLR2004 INP001
+# ruff: noqa: D103, PLR2004, INP001
 
 import datetime as dt
 import json

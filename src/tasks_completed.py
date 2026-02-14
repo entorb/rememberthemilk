@@ -4,8 +4,7 @@
 # https://github.com/entorb/rememberthemilk
 
 import datetime as dt
-
-import pandas as pd
+from typing import TYPE_CHECKING
 
 from helper import (
     DATE_TODAY,
@@ -15,6 +14,9 @@ from helper import (
     get_lists_dict,
     get_tasks_as_df,
 )
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 DATE_START = DATE_TODAY - dt.timedelta(days=365)
 FILTER_COMPLETED = f"""

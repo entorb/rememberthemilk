@@ -1,10 +1,14 @@
 """Completed Tasks."""
 
+from typing import TYPE_CHECKING
+
 import altair as alt
-import pandas as pd
 import streamlit as st
 
 from tasks_completed import completed_week, get_tasks_completed
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 st.title("Completed")
 

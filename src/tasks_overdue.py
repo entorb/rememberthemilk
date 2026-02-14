@@ -3,7 +3,8 @@
 # by Dr. Torben Menke https://entorb.net
 # https://github.com/entorb/rememberthemilk
 
-from pandas import DataFrame
+
+from typing import TYPE_CHECKING
 
 from helper import (
     df_name_url_to_html,
@@ -11,6 +12,9 @@ from helper import (
     get_lists_dict,
     get_tasks_as_df,
 )
+
+if TYPE_CHECKING:
+    from pandas import DataFrame
 
 FILTER_OVERDUE = """
 dueBefore:Today

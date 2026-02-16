@@ -2,8 +2,6 @@
 Test helper functions.
 """
 
-# ruff: noqa: D103, PLR2004, INP001
-
 import datetime as dt
 import json
 import shutil
@@ -38,7 +36,7 @@ CACHE_DIR = Path(__file__).parent.parent / "cache"
 
 
 @pytest.fixture(autouse=True)
-def _setup_tests():  # noqa: ANN202
+def _setup_tests():
     cache_prepare_lists()
     cache_prepare_tasks()
 
@@ -146,7 +144,7 @@ def test_flatten_tasks() -> None:
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
     tasks_list_flat = sorted(
-        tasks_list_flat, key=lambda row: (row["task_id"]), reverse=False
+        tasks_list_flat, key=lambda row: row["task_id"], reverse=False
     )
     # from
     # json.dump(task_list_flat, open("tests/test_data/tasks.json", "w"), indent=2)
@@ -176,7 +174,7 @@ def test_convert_task_fields() -> None:
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
     tasks_list_flat = sorted(
-        tasks_list_flat, key=lambda row: (row["task_id"]), reverse=False
+        tasks_list_flat, key=lambda row: row["task_id"], reverse=False
     )
 
     tasks_list_flat2 = convert_task_fields(tasks_list_flat)
@@ -209,7 +207,7 @@ def test_df_name_url_to_html() -> None:
     lists_dict = get_lists_dict()
     tasks_list_flat = flatten_tasks(rtm_tasks=tasks, lists_dict=lists_dict)
     tasks_list_flat = sorted(
-        tasks_list_flat, key=lambda row: (row["task_id"]), reverse=False
+        tasks_list_flat, key=lambda row: row["task_id"], reverse=False
     )
     tasks_list_flat2 = convert_task_fields(tasks_list_flat)
     df = tasks_to_df(tasks_list_flat2)

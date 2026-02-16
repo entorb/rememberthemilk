@@ -389,8 +389,11 @@ def task_est_to_minutes(est: str) -> int | None:
             est = s[1]
         if est.endswith("M"):
             task_time_min += int(est[:-1])
+    elif est.endswith(" minutes"):
+        task_time_min += int(est[:-8])
+
     else:  # pragma: no cover
-        msg = "Unknown estimate:" + est
+        msg = "Unknown estimate: " + est
         raise ValueError(msg) from None
 
     return task_time_min

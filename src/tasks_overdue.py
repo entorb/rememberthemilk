@@ -3,7 +3,6 @@
 # by Dr. Torben Menke https://entorb.net
 # https://github.com/entorb/rememberthemilk
 
-
 from typing import TYPE_CHECKING
 
 from helper import (

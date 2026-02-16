@@ -15,40 +15,25 @@ register for using the Remember The Milk API here: <https://www.rememberthemilk.
 * `api_key`
 * `shared_secret`
 
-store these info in [rememberthemilk.ini](src/rememberthemilk.ini) (see [rememberthemilk.ini.example](src/rememberthemilk.ini.example))
+store these info in [rememberthemilk.ini](src/rememberthemilk.toml) (see [rememberthemilk.toml.example](src/rememberthemilk.toml.example))
 
 ### Install required Python packages
 
-```sh
-pip install -r requirements.txt
-```
-
-#### Dev Tools
-
-optionally: ruff and pre-commit
+Requires [UV](https://docs.astral.sh/uv/) Python and dependency manager.
 
 ```sh
-pip install ruff pre-commit
-```
-
-optionally: pytest coverage report
-
-```sh
-pip install pytest-cov
-pytest --cov
-# or
-pytest --cov --cov-report=html:coverage_report
+uv sync
 ```
 
 ### Obtain API token
 
-run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemilk.ini](src/rememberthemilk.ini)
+run [uv run src/auth.py](src/auth.py) once and add the resulting `token` to [rememberthemilk.toml](src/rememberthemilk.toml)
 
 ## Playing with the API
 
 ### Analyze tasks completed
 
-[tasks_completed.py](src/tasks_completed.py)
+[uv run src/tasks_completed.py](src/tasks_completed.py)
 
 * HTML table of completed tasks
 * appreciate what you have achieved
@@ -56,7 +41,7 @@ run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemil
 
 ### Analyze tasks overdue
 
-[tasks_overdue.py](src/tasks_overdue.py)
+[uv run src/tasks_overdue.py](src/tasks_overdue.py)
 
 * HTML table of overdue tasks
 * ranked by product of overdue days x priority, to focus on most urgent ones
@@ -65,11 +50,7 @@ run [auth.py](src/auth.py) once and add the resulting `token` to [rememberthemil
 ## Streamlit for interactive data analysis
 
 ```sh
-pip install streamlit watchdog
-```
-
-```sh
-streamlit run src/app.py
+uv run streamlit run src/app.py
 ```
 
 ## My RTM lifehacks

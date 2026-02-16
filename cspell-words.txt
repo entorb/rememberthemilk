@@ -17,6 +17,7 @@ SonarQube
 Streamlit
 Taschengeld
 taskseries
+testpaths
 todos
 Torben
 WKST

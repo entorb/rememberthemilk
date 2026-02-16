@@ -1,19 +1,20 @@
 ---
 $schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
 version: "0.2"
-useGitignore: true
 language: en-US
+useGitignore: true
+
 dictionaryDefinitions:
   - name: cspell-words
     path: "./cspell-words.txt"
     addWords: true
+
 dictionaries:
   - cspell-words
+  - python
+
 ignorePaths:
   - ".*"
-  - "dist"
-  - "build"
-  - "node_modules"
-  - "requirements.txt"
-  - "cache"
-  - "output"
+  - "LICENSE"
+  - "cspell.config.yaml"
+  - "uv.lock"

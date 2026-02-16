@@ -7,8 +7,8 @@ cd $(dirname $0)/..
 set -e
 
 # remove all dependencies
-uv remove pandas requests
-uv remove --dev pre-commit pytest pytest-cov ruff
+uv remove pandas requests streamlit
+uv remove --dev pre-commit pytest pytest-cov ruff watchdog
 
 uv lock --upgrade
 uv sync --upgrade
@@ -19,15 +19,18 @@ uv sync --upgrade
 uv python upgrade
 
 # re-add all dependencies
-uv add pandas requests
-uv add --dev pre-commit pytest pytest-cov ruff
+uv add pandas requests streamlit
+uv add --dev pre-commit pytest pytest-cov ruff watchdog
 
 uv lock --upgrade
 uv sync --upgrade
 
-uv run pre-commit autoupdate
+# ruff
+uv run ruff check --fix
+uv run ruff format
 
-./scripts/run_ruff.sh
-./scripts/run_pre-commit.sh
+# pre-commit
+uv run pre-commit autoupdate
+uv run pre-commit run --all-files
 
 echo DONE

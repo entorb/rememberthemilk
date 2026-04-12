@@ -1,0 +1,8 @@
+.vscode/
+__pycache__/
+cache/
+output/
+
+rememberthemilk.toml
+.coverage
+.DS_Store

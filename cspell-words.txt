@@ -13,6 +13,7 @@ rememberthemilk
 rrule
 rumdl
 selectbox
+shfmt
 SonarCloud
 SonarQube
 Streamlit

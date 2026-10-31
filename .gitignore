@@ -1,0 +1,12 @@
+.coverage
+.DS_Store
+.vscode/
+/.pytest_cache/
+/.ruff_cache/
+/.rumdl_cache/
+/.venv/
+__pycache__/
+cache/
+cspell-words-missing.txt
+output/
+rememberthemilk.toml

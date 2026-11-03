@@ -5,9 +5,9 @@
 /.ruff_cache/
 /.rumdl_cache/
 /.venv/
+/tmp
 __pycache__/
 cache/
 cspell-words-missing.txt
 output/
 rememberthemilk.toml
-/tmp

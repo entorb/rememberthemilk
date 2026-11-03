@@ -17,7 +17,7 @@ def rtm_get_frob() -> str:
     """
     Ask the API for a frob.
     """
-    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&format=json&api_key={api_key}&api_sig={api_sig}') # noqa: E501
+    # url = f'https://api.rememberthemilk.com/services/rest/?method=rtm.auth.getFrob&format=json&api_key={api_key}&api_sig={api_sig}')
     param = {"method": "rtm.auth.getFrob", "format": "json"}
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))
     url = f"{URL_RTM_BASE}?{param_str}"
@@ -32,7 +32,7 @@ def rtm_gen_auth_url(frob: str) -> str:
     """
     Create a url allowing a user to grant permission on his data to this app.
     """
-    # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987 # noqa: E501
+    # https://www.rememberthemilk.com/services/auth/?api_key=abc123&perms=delete&frob=123456&api_sig=zxy987
     url_rtm_auth = "https://www.rememberthemilk.com/services/auth/"
     param = {"perms": "read", "frob": frob}
     param_str = dict_to_url_param(rtm_append_key_and_sig(param))

@@ -15,7 +15,8 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.2",
-    "watchdog>=6.0.0",
+    "watchdog>=6.0.0; sys_platform != 'darwin'",
+    "watchdog>=7.0.0; sys_platform == 'darwin'",  # cp314 macOS wheels
 ]
 
 [tool.pytest.ini_options]

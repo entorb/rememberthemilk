@@ -1,6 +1,9 @@
 # RememberTheMilk
 
-* access to <https://www.rememberthemilk.com> todo lists via their API
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=entorb_timer&metric=ncloc)](https://sonarcloud.io/summary/overall?id=entorb_rememberthemilk)
+[![Security issues](https://sonarcloud.io/api/project_badges/measure?project=entorb_timer&metric=software_quality_security_issues)](https://sonarcloud.io/summary/overall?id=entorb_rememberthemilk)
+
+* access [RememberTheMilk](https://www.rememberthemilk.com) todo lists via their API
 * analyze done and pending tasks
 * caching to reduce API usage
 
@@ -15,11 +18,11 @@ register for using the Remember The Milk API here: <https://www.rememberthemilk.
 * `api_key`
 * `shared_secret`
 
-rename and set in [rememberthemilk.toml.example](src/rememberthemilk.toml.example)
+setup a `rememberthemilk.toml`, based on [rememberthemilk.toml.example](src/rememberthemilk.toml.example)
 
 ### Install required Python packages
 
-Requires [UV](https://docs.astral.sh/uv/) Python and dependency manager.
+Requires [UV](https://docs.astral.sh/uv/).
 
 ```sh
 uv sync

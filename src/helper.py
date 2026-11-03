@@ -227,12 +227,6 @@ def get_lists_dict() -> dict[int, str]:
     for el in rtm_lists:
         # {'id': '25825681', 'name': 'Name of my List', 'deleted': '0', 'locked': '0', 'archived': '0', 'position': '0', 'smart': '0', 'sort_order': '0'}  # noqa: E501
         lists_dict[int(el["id"])] = el["name"]
-    # for my_tasks_per_list in rtm_lists:
-    #     print(
-    #         my_tasks_per_list["id"],
-    #         my_tasks_per_list["smart"],
-    #         my_tasks_per_list["name"],
-    #     )
     return lists_dict
 
 

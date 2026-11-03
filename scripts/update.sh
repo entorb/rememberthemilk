@@ -7,7 +7,7 @@ uv remove pandas requests streamlit
 uv remove --dev pytest pytest-cov ruff watchdog
 
 uv lock --upgrade
-uv sync --upgrade
+uv sync --upgrade --no-build
 
 # to update uv on macos:
 # brew update && brew upgrade uv
@@ -19,11 +19,11 @@ uv add pandas requests streamlit
 uv add --dev pytest pytest-cov ruff watchdog
 
 uv lock --upgrade
-uv sync --upgrade
+uv sync --upgrade --no-build
 
 # ruff
-uv run ruff format
-uv run ruff check --fix
+uv run --no-build ruff format
+uv run --no-build ruff check --fix
 
 # pre-commit
 prek autoupdate --cooldown-days 7

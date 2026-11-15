@@ -2,31 +2,28 @@
 set -e
 cd "$(dirname "$0")/.."
 
-# remove all dependencies
-uv remove pandas requests streamlit
-uv remove --dev pytest pytest-cov ruff watchdog
+echo "## Python Packages"
+# bump [project].dependencies (==) to latest; dev group is bumped by Renovate (tools-py),
+# uv upgrade cannot yet do dependency groups (astral-sh/uv#20783)
+uv upgrade
+uv sync --no-build --upgrade
 
-uv lock --upgrade
-uv sync --upgrade --no-build
+echo "## Code checks"
+echo "### Prek update"
+prek update --cooldown-days 7
 
-# to update uv on macos:
-# brew update && brew upgrade uv
+echo "### run_checks.sh"
+./scripts/run_checks.sh
 
-uv python upgrade
+echo "## Git"
+if [ -n "$(git status --porcelain)" ]; then
+  echo "### git push"
+  FILES="pyproject.toml uv.lock .pre-commit-config.yaml .python-version"
+  # shellcheck disable=SC2086
+  git add $FILES
+  # shellcheck disable=SC2086
+  git diff --staged --quiet || git commit -m "chore(deps): Package update" -- $FILES
+  git push
+fi
 
-# re-add all dependencies
-uv add pandas requests streamlit
-uv add --dev pytest pytest-cov ruff watchdog
-
-uv lock --upgrade
-uv sync --upgrade --no-build
-
-# ruff
-uv run --no-build ruff format
-uv run --no-build ruff check --fix
-
-# pre-commit
-prek autoupdate --cooldown-days 7
-prek run --all-files --quiet
-
-echo DONE
+echo "update DONE, not yet deployed"

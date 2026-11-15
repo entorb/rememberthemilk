@@ -5,17 +5,17 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
-    "pandas~=3.1.1",
-    "requests~=2.34.2",
-    "streamlit~=1.67.0",
+    "pandas==3.1.1",
+    "requests==2.34.2",
+    "streamlit==1.67.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest~=9.2.0",
-    "pytest-cov~=7.1.0",
-    "ruff~=0.17.4",
-    "watchdog~=7.1.0",
+    "pytest==9.2.0",
+    "pytest-cov==7.1.0",
+    "ruff==0.17.4",
+    "watchdog==7.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -29,5 +29,6 @@ source = ["src"]
 exclude_lines = ["pragma: no cover", "if __name__ == \"__main__\":"]
 
 [tool.uv]
+add-bounds = "exact"
 required-version = "~=0.13.6"
 exclude-newer = "7 days"
